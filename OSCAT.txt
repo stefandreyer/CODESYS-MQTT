@@ -1,0 +1,5 @@
+Diese Bibliothek verwendet die Biblotheken von www.oscat.de
+Schauts euch an, es lohnt sich!
+
+This library uses the librarys of www.oscat.de
+Take a look its worth it!

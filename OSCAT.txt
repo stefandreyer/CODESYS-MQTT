@@ -1,4 +1,4 @@
-Diese Bibliothek verwendet die Biblotheken von www.oscat.de
+Diese Bibliothek verwendet die Bibliotheken von www.oscat.de
 Schauts euch an, es lohnt sich!
 
 This library uses the librarys of www.oscat.de

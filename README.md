@@ -8,6 +8,7 @@ MQTT client for CODESYS
 - unlimited publish FBs(by library)
 - unlimited subscribe FBs(by library)
 - TLS support(without certificates)
+- FBs for easy transmit of values and states
 
 # New value FB
 

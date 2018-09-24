@@ -21,3 +21,7 @@ created new FB for easy publishing stats(on/off, true/false) to broker
 # Will topic
 
 will topic is now build with client id
+
+# Examples
+
+nice example projets for Windows and RaspberryPi with and without TLS

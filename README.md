@@ -1,6 +1,12 @@
 # CODESYS-MQTT
 MQTT client for CODESYS
 
+# Dependencies
+
+all needed Libraries can be found at
+  
+  https://github.com/stefandreyer
+
 # Features
 - all QoS Levels for publish and subscribe
 - will topic

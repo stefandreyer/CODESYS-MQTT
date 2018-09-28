@@ -30,4 +30,4 @@ will topic is now build with client id
 
 # Examples
 
-nice example projets for Windows and RaspberryPi with and without TLS
+nice example projets for Windows and RaspberryPi with and without TLS using test.mosquitto.org, so no own broker needed

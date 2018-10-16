@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP13" creationDateTime="2018-10-12T23:45:32.7733946" />
-  <contentHeader name="MQTT" version="1.0.0.0" modificationDateTime="2018-10-12T23:45:08.0555978" organization="Stefan Dreyer" author="Stefan Dreyer">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP13" creationDateTime="2018-10-16T05:39:03.2621849" />
+  <contentHeader name="MQTT" version="1.0.0.0" modificationDateTime="2018-10-16T05:30:41.3271196" organization="Stefan Dreyer" author="Stefan Dreyer">
     <Comment>MQTT Stuff
 Using some cool stuff of OSCAT libs.
 see oscat.de
@@ -116,6 +116,8 @@ more to describe
               <value name="STATE_MASHINE_OUT" />
               <value name="SendOutData" />
               <value name="SendInData" />
+              <value name="SendOutDataInsertTopic" />
+              <value name="SendOutDataInsertPayload" />
             </values>
           </enum>
         </baseType>
@@ -602,6 +604,18 @@ set to true if you want to use TLS</xhtml>
       <dataType name="MQTT_IN_OUT">
         <baseType>
           <struct>
+            <variable name="handleFB">
+              <type>
+                <pointer>
+                  <baseType>
+                    <derived name="HANDLE_MQTT" />
+                  </baseType>
+                </pointer>
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">pointer to handle FB</xhtml>
+              </documentation>
+            </variable>
             <variable name="In">
               <type>
                 <pointer>
@@ -1045,79 +1059,32 @@ set to true if you want to use TLS</xhtml>
                 <BOOL />
               </type>
             </variable>
-            <variable name="PublishIndex">
-              <type>
-                <INT />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">this index is to be published</xhtml>
-              </documentation>
-            </variable>
-            <variable name="PublishNeeded">
-              <type>
-                <BOOL />
-              </type>
-              <initialValue>
-                <simpleValue value="FALSE" />
-              </initialValue>
-            </variable>
             <variable name="PublishBlocking">
               <type>
                 <BOOL />
               </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">this index is to be published
+	PublishIndex:INT;
+	PublishNeeded:BOOL := FALSE;</xhtml>
+              </documentation>
             </variable>
-            <variable name="PubrelIndex">
+            <variable name="PublishBlockingIndex">
               <type>
                 <INT />
               </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">this index is to be published</xhtml>
-              </documentation>
-            </variable>
-            <variable name="PubrelNeeded">
-              <type>
-                <BOOL />
-              </type>
-              <initialValue>
-                <simpleValue value="FALSE" />
-              </initialValue>
             </variable>
             <variable name="PingIndex">
               <type>
                 <INT />
               </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">this index is to be published
+	PubrelIndex:INT;
+	PubrelNeeded:BOOL := FALSE;</xhtml>
+              </documentation>
             </variable>
             <variable name="PingNeeded">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="PubackIndex">
-              <type>
-                <INT />
-              </type>
-            </variable>
-            <variable name="PubackNeeded">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="PubrecIndex">
-              <type>
-                <INT />
-              </type>
-            </variable>
-            <variable name="PubrecNeeded">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="PubcompIndex">
-              <type>
-                <INT />
-              </type>
-            </variable>
-            <variable name="PubcompNeeded">
               <type>
                 <BOOL />
               </type>
@@ -2124,6 +2091,81 @@ InsertStringToBufferAndLength := pos + length + 2;</xhtml>
                 </array>
               </type>
             </variable>
+            <variable name="PublishSendListCount">
+              <type>
+                <INT />
+              </type>
+            </variable>
+            <variable name="PublishSendList">
+              <type>
+                <array>
+                  <dimension lower="0" upper="QoS_BUFFER_SIZE" />
+                  <baseType>
+                    <INT />
+                  </baseType>
+                </array>
+              </type>
+            </variable>
+            <variable name="PubrelSendListCount">
+              <type>
+                <INT />
+              </type>
+            </variable>
+            <variable name="PubrelSendList">
+              <type>
+                <array>
+                  <dimension lower="0" upper="QoS_BUFFER_SIZE" />
+                  <baseType>
+                    <INT />
+                  </baseType>
+                </array>
+              </type>
+            </variable>
+            <variable name="PubackSendListCount">
+              <type>
+                <INT />
+              </type>
+            </variable>
+            <variable name="PubackSendList">
+              <type>
+                <array>
+                  <dimension lower="0" upper="QoS_BUFFER_SIZE" />
+                  <baseType>
+                    <INT />
+                  </baseType>
+                </array>
+              </type>
+            </variable>
+            <variable name="PubrecSendListCount">
+              <type>
+                <INT />
+              </type>
+            </variable>
+            <variable name="PubrecSendList">
+              <type>
+                <array>
+                  <dimension lower="0" upper="QoS_BUFFER_SIZE" />
+                  <baseType>
+                    <INT />
+                  </baseType>
+                </array>
+              </type>
+            </variable>
+            <variable name="PubcompSendListCount">
+              <type>
+                <INT />
+              </type>
+            </variable>
+            <variable name="PubcompSendList">
+              <type>
+                <array>
+                  <dimension lower="0" upper="QoS_BUFFER_SIZE" />
+                  <baseType>
+                    <INT />
+                  </baseType>
+                </array>
+              </type>
+            </variable>
             <variable name="RepeatedPublish">
               <type>
                 <ULINT />
@@ -2870,6 +2912,8 @@ END_IF
 CASE step OF
 
 	00:	IF ENABLE THEN
+			MQTT_IN_OUT.handleFB := THIS;
+	
 			PUBREC_ERROR_INDEX := 0;
 			CountRepeatedPingDisconnect := 0;
 			SendetBytes := 0;
@@ -2877,8 +2921,8 @@ CASE step OF
 			PublishSplited := FALSE;
 			DoDisconnect := FALSE;
 			SendInfos.PingNeeded := FALSE;
-			SendInfos.PublishNeeded := FALSE;
-			SendInfos.PubrelNeeded := FALSE;
+			//SendInfos.PublishNeeded := FALSE;
+			//SendInfos.PubrelNeeded := FALSE;
 			SendInfos.SubscribeNeeded := FALSE;
 			SendInfos.UnsubscribeNeeded := FALSE;
 			StepBuildPublish := 0;
@@ -2938,6 +2982,11 @@ CASE step OF
 			MergeSplitedPublish(MQTT_IN_OUT:= ADR(MQTT_IN_OUT));
 		END_IF	
 		ParseIncoming(MQTT_IN_OUT:= ADR(MQTT_IN_OUT));
+		PublishSendListCount := 0;
+		PubrelSendListCount := 0;
+		PubackSendListCount := 0;
+		PubrecSendListCount := 0;
+		PubcompSendListCount := 0;
 		StateMashineIn(MQTT_IN_OUT:= ADR(MQTT_IN_OUT));
 		StateMashineOut( MQTT_IN_OUT:= ADR(MQTT_IN_OUT));
 		
@@ -3076,6 +3125,21 @@ END_IF
                       <INT />
                     </type>
                   </variable>
+                  <variable name="j">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="tmpLowest">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <variable name="minIndex">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
                   <variable name="UnsubscribeLastHighest">
                     <type>
                       <UINT />
@@ -3092,26 +3156,14 @@ END_IF
                       <simpleValue value="16#FFFF" />
                     </initialValue>
                   </variable>
-                  <variable name="PublishLastHighest">
-                    <type>
-                      <UINT />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="16#FFFF" />
-                    </initialValue>
-                  </variable>
-                  <variable name="PubrelLastHighest">
-                    <type>
-                      <UINT />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="16#FFFF" />
-                    </initialValue>
-                  </variable>
                   <variable name="RecivePaketID">
                     <type>
                       <WORD />
                     </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">	PublishLastHighest : UINT := 16#FFFF;
+	PubrelLastHighest : UINT := 16#FFFF;</xhtml>
+                    </documentation>
                   </variable>
                   <variable name="RecivePakteType">
                     <type>
@@ -3135,6 +3187,8 @@ RecivePaketID := DWORD_TO_WORD(OSCAT_BASIC.DWORD_OF_BYTE(B3:= 0, B2:= 0, B1:= CO
 RecivePakteType := COM.R_BUF.BUFFER[0] AND 16#F0; 
 
 GVL_MQTT.ProgNum := PROG_NUM.STATE_MASHINE_OUT;
+PublishSendListCount := 0;
+PubrelSendListCount := 0;
 
 TempSlotsWorking := 0;
 FOR i := 0 TO QoS_BUFFER_SIZE - 1 DO
@@ -3210,13 +3264,15 @@ FOR i := 0 TO QoS_BUFFER_SIZE - 1 DO
 			END_IF
 			
 		STEPS_OUT.SEND_PUBLSIH:
+			PublishSendList[PublishSendListCount] := i;
+			PublishSendListCount := PublishSendListCount + 1;
 			//check if my paket ID is the lowest to send it
-			IF OutData[i].PUBLISHOrder &lt; PublishLastHighest (*AND NOT SendInfos.PublishNeeded *)THEN
+			(*IF OutData[i].PUBLISHOrder &lt; PublishLastHighest THEN
 				SendInfos.PublishIndex := i;
 				SendInfos.PublishNeeded := TRUE;
 				PublishLastHighest := OutData[i].PUBLISHOrder;
 				OutData[i].WaitsForBuffFree := OutData[i].WaitsForBuffFree + 1;
-			END_IF
+			END_IF*)
 			
 		STEPS_OUT.WAIT_PUBACK:
 			IF OutData[i].TimeOutStarted AND OutData[i].TimeOut.Q THEN
@@ -3237,12 +3293,15 @@ FOR i := 0 TO QoS_BUFFER_SIZE - 1 DO
 			END_IF
 			
 		STEPS_OUT.SEND_PUBREL:
+			PubrelSendList[PubrelSendListCount] := i;
+			PubrelSendListCount := PubrelSendListCount + 1;
+			
 			//check if my Pubrec num is the lowest to send it
-			IF OutData[i].PUBRECOrder &lt; PubrelLastHighest AND NOT SendInfos.PubrelNeeded THEN
+			(*IF OutData[i].PUBRECOrder &lt; PubrelLastHighest AND NOT SendInfos.PubrelNeeded THEN
 				SendInfos.PubrelIndex := i;
 				SendInfos.PubrelNeeded := TRUE;
 				PubrelLastHighest := OutData[i].PUBRECOrder;
-			END_IF
+			END_IF*)
 			
 		STEPS_OUT.WAIT_PUBCOMP:
 			IF OutData[i].TimeOutStarted AND OutData[i].TimeOut.Q THEN
@@ -3267,6 +3326,44 @@ FOR i := 0 TO QoS_BUFFER_SIZE - 1 DO
 	OutData[i].TimeOut(IN:= OutData[i].TimeOutStarted, PT:= MyConstants.REPEAT_TIMEOUT);
 END_FOR
 
+//now sort the arrays...
+IF PublishSendListCount &gt; 1 THEN
+	FOR i := 0 TO PublishSendListCount - 1 DO
+		tmpLowest := 16#FFFF;
+		minIndex := i;
+		FOR j := i TO PublishSendListCount - 1 DO
+			IF OutData[PublishSendList[j]].PUBLISHOrder &lt; tmpLowest THEN
+				minIndex := j;
+				tmpLowest := OutData[PublishSendList[j]].PUBLISHOrder;
+			END_IF
+		END_FOR
+		IF minIndex &lt;&gt; i THEN
+			//hier tauschen
+			j := PublishSendList[minIndex];
+			PublishSendList[minIndex] := PublishSendList[i];
+			PublishSendList[i] := j;
+		END_IF
+	END_FOR
+END_IF
+
+IF PubrelSendListCount &gt; 1 THEN
+	FOR i := 0 TO PubrelSendListCount - 1 DO
+		tmpLowest := 16#FFFF;
+		minIndex := i;
+		FOR j := i TO PubrelSendListCount - 1 DO
+			IF OutData[PubrelSendList[j]].PUBRECOrder &lt; tmpLowest THEN
+				minIndex := j;
+				tmpLowest := OutData[PubrelSendList[j]].PUBRECOrder;
+			END_IF
+		END_FOR
+		IF minIndex &lt;&gt; i THEN
+			//hier tauschen
+			j := PubrelSendList[minIndex];
+			PubrelSendList[minIndex] := PubrelSendList[i];
+			PubrelSendList[i] := j;
+		END_IF
+	END_FOR
+END_IF
 
 //Hamdel PubrelOrderIndexCounter
 IF PubrelOrderIndexCounter &gt; MyConstants.REORDER_VALUE THEN 
@@ -3306,106 +3403,41 @@ OutSlotsWorking := TempSlotsWorking;</xhtml>
                   </variable>
                 </inputVars>
                 <localVars>
-                  <variable name="RecivePaketID">
-                    <type>
-                      <WORD />
-                    </type>
-                  </variable>
-                  <variable name="RecivePakteType">
-                    <type>
-                      <BYTE />
-                    </type>
-                  </variable>
-                  <variable name="ReciveQoSLevel">
-                    <type>
-                      <derived name="QoS" />
-                    </type>
-                  </variable>
-                  <variable name="RemainingLength">
-                    <type>
-                      <derived name="REMAINING_LENGTH_RETURN" />
-                    </type>
-                  </variable>
-                  <variable name="TopicSize">
-                    <type>
-                      <UINT />
-                    </type>
-                  </variable>
-                  <variable name="OutData">
-                    <type>
-                      <BOOL />
-                    </type>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Output the Data, Tru if Data can be outputted</xhtml>
-                    </documentation>
-                  </variable>
-                  <variable name="PayloadPosStart">
-                    <type>
-                      <UDINT />
-                    </type>
-                  </variable>
-                  <variable name="PayloadSize">
-                    <type>
-                      <UDINT />
-                    </type>
-                  </variable>
                   <variable name="i">
                     <type>
                       <INT />
                     </type>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">PaketID:WORD;</xhtml>
-                    </documentation>
                   </variable>
-                  <variable name="PaketFound">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
-                  <variable name="PaketIndex">
+                  <variable name="j">
                     <type>
                       <INT />
                     </type>
-                  </variable>
-                  <variable name="FreeSlot">
-                    <type>
-                      <INT />
-                    </type>
-                  </variable>
-                  <variable name="FreeSlotFound">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
-                  <variable name="PublishLastHighest">
-                    <type>
-                      <UINT />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="16#FFFF" />
-                    </initialValue>
-                  </variable>
-                  <variable name="PubcompLastHighest">
-                    <type>
-                      <UINT />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="16#FFFF" />
-                    </initialValue>
                   </variable>
                   <variable name="TempSlotsWorking">
                     <type>
                       <UINT />
                     </type>
                   </variable>
+                  <variable name="tmpLowest">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <variable name="minIndex">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
                 </localVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">RecivePakteType := COM.R_BUF.BUFFER[0] AND 16#F0;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">//RecivePakteType := COM.R_BUF.BUFFER[0] AND 16#F0;
 GVL_MQTT.ProgNum := PROG_NUM.STATE_MASHINE_IN;
 //Handle State Mashines
-
+PubackSendListCount := 0;
+PubrecSendListCount := 0;
+PubcompSendListCount := 0;
 TempSlotsWorking := 0;
 FOR i := 0 TO QoS_BUFFER_SIZE - 1 DO
 	//do Timers...
@@ -3432,29 +3464,93 @@ FOR i := 0 TO QoS_BUFFER_SIZE - 1 DO
 			END_IF
 		END_IF
 		STEPS_IN.SEND_PUBACK:
-			IF InData[i].PUBLISHOrder &lt; PublishLastHighest AND NOT SendInfos.PubackNeeded THEN
+			PubackSendList[PubackSendListCount] := i;
+			PubackSendListCount := PubackSendListCount + 1;
+			(*IF InData[i].PUBLISHOrder &lt; PublishLastHighest AND NOT SendInfos.PubackNeeded THEN
 				SendInfos.PubackIndex := i;
 				SendInfos.PubackNeeded := TRUE;
 				PublishLastHighest := InData[i].PUBLISHOrder;
-			END_IF
+			END_IF*)
 		STEPS_IN.SEND_PUBREC:
-		IF InData[i].PUBLISHOrder &lt; PublishLastHighest AND NOT SendInfos.PubrecNeeded THEN
+			PubrecSendList[PubrecSendListCount] := i;
+			PubrecSendListCount := PubrecSendListCount + 1;
+		(*IF InData[i].PUBLISHOrder &lt; PublishLastHighest AND NOT SendInfos.PubrecNeeded THEN
 				SendInfos.PubrecIndex := i;
 				SendInfos.PubrecNeeded := TRUE;
 				PublishLastHighest := InData[i].PUBLISHOrder;
-		END_IF
+		END_IF*)
 		STEPS_IN.SEND_PUBCOMP:
-		IF InData[i].PUBCOMPOrder &lt; PubcompLastHighest AND NOT SendInfos.PubcompNeeded THEN
+			PubcompSendList[PubcompSendListCount] := i;
+			PubcompSendListCount := PubcompSendListCount + 1;
+		(*IF InData[i].PUBCOMPOrder &lt; PubcompLastHighest AND NOT SendInfos.PubcompNeeded THEN
 				SendInfos.PubcompIndex := i;
 				SendInfos.PubcompNeeded := TRUE;
 				PubcompLastHighest := InData[i].PUBCOMPOrder;
-		END_IF
+		END_IF*)
 	END_CASE
 	//make sure timer is set to 0 if timeout resetet
 	InData[i].TimeOut(IN:= InData[i].TimeOutStarted, PT:= MyConstants.REPEAT_TIMEOUT);
 END_FOR
 
 
+//now sort the arrays...
+IF PubackSendListCount &gt; 1 THEN
+	FOR i := 0 TO PubackSendListCount - 1 DO
+		tmpLowest := 16#FFFF;
+		minIndex := i;
+		FOR j := i TO PubackSendListCount - 1 DO
+			IF InData[PubackSendList[j]].PUBLISHOrder &lt; tmpLowest THEN
+				minIndex := j;
+				tmpLowest := InData[PubackSendList[j]].PUBLISHOrder;
+			END_IF
+		END_FOR
+		IF minIndex &lt;&gt; i THEN
+			//hier tauschen
+			j := PubackSendList[minIndex];
+			PubackSendList[minIndex] := PubackSendList[i];
+			PubackSendList[i] := j;
+		END_IF
+	END_FOR
+END_IF
+
+IF PubrecSendListCount &gt; 1 THEN
+	FOR i := 0 TO PubrecSendListCount - 1 DO
+		tmpLowest := 16#FFFF;
+		minIndex := i;
+		FOR j := i TO PubrecSendListCount - 1 DO
+			IF InData[PubrecSendList[j]].PUBLISHOrder &lt; tmpLowest THEN
+				minIndex := j;
+				tmpLowest := InData[PubrecSendList[j]].PUBLISHOrder;
+			END_IF
+		END_FOR
+		IF minIndex &lt;&gt; i THEN
+			//hier tauschen
+			j := PubrecSendList[minIndex];
+			PubrecSendList[minIndex] := PubrecSendList[i];
+			PubrecSendList[i] := j;
+		END_IF
+	END_FOR
+END_IF
+
+
+IF PubcompSendListCount &gt; 1 THEN
+	FOR i := 0 TO PubcompSendListCount - 1 DO
+		tmpLowest := 16#FFFF;
+		minIndex := i;
+		FOR j := i TO PubcompSendListCount - 1 DO
+			IF InData[PubcompSendList[j]].PUBCOMPOrder &lt; tmpLowest THEN
+				minIndex := j;
+				tmpLowest := InData[PubcompSendList[j]].PUBCOMPOrder;
+			END_IF
+		END_FOR
+		IF minIndex &lt;&gt; i THEN
+			//hier tauschen
+			j := PubcompSendList[minIndex];
+			PubcompSendList[minIndex] := PubcompSendList[i];
+			PubcompSendList[i] := j;
+		END_IF
+	END_FOR
+END_IF
 //Hamdel PublishOrderIndexCounter
 IF IncomingPublishOrderIndexCounter &gt; MyConstants.REORDER_VALUE THEN 
 	//do it brute force, just sub 20000 to every value...
@@ -3538,6 +3634,7 @@ IF StepBuildPublish = 10 THEN
 END_IF
 
 IF StepBuildPublish = 20 THEN
+	GVL_MQTT.ProgNum := PROG_NUM.SendOutDataInsertTopic;
 	//insert topic
 	InsertSplitTopic(
 		topic:= PaketData^.MqttTopic, 
@@ -3577,6 +3674,7 @@ IF StepBuildPublish = 30 THEN
 END_IF
 
 IF StepBuildPublish = 40 THEN
+	GVL_MQTT.ProgNum := PROG_NUM.SendOutDataInsertPayload;
 	//now insert payload
 	IF PaketData^.MqttPayloadLength &gt; 0 THEN
 		//insert payload
@@ -3845,6 +3943,11 @@ COM.S_BUF.SIZE := idx;
                       <BOOL />
                     </type>
                   </variable>
+                  <variable name="i">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
                 </localVars>
               </interface>
               <body>
@@ -3866,15 +3969,21 @@ IF NOT COM.S_BUF.SIZE = 0 THEN
 	CountOutSendNotFree := CountOutSendNotFree + 1;
 END_IF
 //next Prio send Pubrel 
-IF  NOT (COM.S_BUF.SIZE + SIZE_PUBREL &gt; TRANSMIT_BUFFER_SIZE) AND SendInfos.PubrelNeeded AND NOT SomethingIsBlocking THEN
-	SendInfos.PubrelNeeded := FALSE;
-	COM.S_BUF.BUFFER[COM.S_BUF.SIZE] := MESSAGETYPE.PUBREL OR 2#10;//set type and Reserved bits
-	COM.S_BUF.BUFFER[COM.S_BUF.SIZE + 1] := 2;
-	COM.S_BUF.BUFFER[COM.S_BUF.SIZE + 2] := OSCAT_BASIC.BYTE_OF_DWORD(in:= OutData[SendInfos.PubrelIndex].InDataFromFb^.PaketId, N:= 1);
-	COM.S_BUF.BUFFER[COM.S_BUF.SIZE + 3] := OSCAT_BASIC.BYTE_OF_DWORD(in:= OutData[SendInfos.PubrelIndex].InDataFromFb^.PaketId, N:= 0);
-	COM.S_BUF.SIZE := COM.S_BUF.SIZE + SIZE_PUBREL;
-	OutData[SendInfos.PubrelIndex].step := STEPS_OUT.WAIT_PUBCOMP;
-	OutData[SendInfos.PubrelIndex].TimeOutStarted := TRUE;//start Timeout
+IF PubrelSendListCount &gt; 0 AND NOT SomethingIsBlocking THEN
+	FOR i := 0 TO PubrelSendListCount - 1 DO
+		IF NOT (COM.S_BUF.SIZE + SIZE_PUBREL &gt; TRANSMIT_BUFFER_SIZE) THEN
+			//SendInfos.PubrelNeeded := FALSE;
+			COM.S_BUF.BUFFER[COM.S_BUF.SIZE] := MESSAGETYPE.PUBREL OR 2#10;//set type and Reserved bits
+			COM.S_BUF.BUFFER[COM.S_BUF.SIZE + 1] := 2;
+			COM.S_BUF.BUFFER[COM.S_BUF.SIZE + 2] := OSCAT_BASIC.BYTE_OF_DWORD(in:= OutData[PubrelSendList[i]].InDataFromFb^.PaketId, N:= 1);
+			COM.S_BUF.BUFFER[COM.S_BUF.SIZE + 3] := OSCAT_BASIC.BYTE_OF_DWORD(in:= OutData[PubrelSendList[i]].InDataFromFb^.PaketId, N:= 0);
+			COM.S_BUF.SIZE := COM.S_BUF.SIZE + SIZE_PUBREL;
+			OutData[PubrelSendList[i]].step := STEPS_OUT.WAIT_PUBCOMP;
+			OutData[PubrelSendList[i]].TimeOutStarted := TRUE;//start Timeout			
+		ELSE
+			EXIT;
+		END_IF 
+	END_FOR
 END_IF
 
 //send Unsubscribe
@@ -3901,33 +4010,44 @@ IF SendInfos.SubscribeNeeded AND (NOT SomethingIsBlocking OR SendInfos.Subscribe
 	END_IF
 END_IF
 //send Publish 
-IF SendInfos.PublishNeeded AND (NOT SomethingIsBlocking OR SendInfos.PublishBlocking) THEN
-	
-	IF NOT BuildPublishPaket(PaketData:= OutData[SendInfos.PublishIndex].InDataFromFb) THEN
-		SendInfos.PublishBlocking := TRUE;
-	ELSE 
-		SendInfos.PublishNeeded := FALSE;
+IF SendInfos.PublishBlocking THEN
+	IF BuildPublishPaket(PaketData:= OutData[SendInfos.PublishBlockingIndex].InDataFromFb) THEN
 		SendInfos.PublishBlocking := FALSE;
-		//publish gone, increase token
-	
-		OutData[SendInfos.PublishIndex].TimeOutStarted := TRUE;//start Timeout
-		CASE OutData[SendInfos.PublishIndex].InDataFromFb^.MessageQoS OF
-			QoS.AtMostOnce:
-			//paket gone and bye bye, on QoS 0 
-			OutData[SendInfos.PublishIndex].InDataFromFb^.SendSucsess := TRUE;
-			OutData[SendInfos.PublishIndex].step := STEPS_OUT.WAIT_DATA;//can get new data
-			QoS.AtLeastOnce:
-				OutData[SendInfos.PublishIndex].step := STEPS_OUT.WAIT_PUBACK;//wait for ACK
-				IF NOT OutData[SendInfos.PublishIndex].InDataFromFb^.DUP THEN
-					Publishsunacknowledged := Publishsunacknowledged + 1;
-				END_IF
-			QoS.ExactlyOnce:
-				OutData[SendInfos.PublishIndex].step := STEPS_OUT.WAIT_PUBREC;//wait for REC
-				IF NOT OutData[SendInfos.PublishIndex].InDataFromFb^.DUP THEN
-					Publishsunacknowledged := Publishsunacknowledged + 1;
-				END_IF
-		END_CASE
 	END_IF
+END_IF
+
+IF (PublishSendListCount &gt; 0 AND NOT SomethingIsBlocking) THEN
+	//handle pendig publisah packet
+	//handle new publish packet
+	FOR i := 0 TO PublishSendListCount - 1 DO
+		IF NOT BuildPublishPaket(PaketData:= OutData[PublishSendList[i]].InDataFromFb) THEN
+			SendInfos.PublishBlocking := TRUE;
+			SendInfos.PublishBlockingIndex := PublishSendList[i];
+			EXIT;
+		ELSE 
+			//SendInfos.PublishNeeded := FALSE;
+			SendInfos.PublishBlocking := FALSE;
+			//publish gone, increase token
+		
+			OutData[PublishSendList[i]].TimeOutStarted := TRUE;//start Timeout
+			CASE OutData[PublishSendList[i]].InDataFromFb^.MessageQoS OF
+				QoS.AtMostOnce:
+				//paket gone and bye bye, on QoS 0 
+				OutData[PublishSendList[i]].InDataFromFb^.SendSucsess := TRUE;
+				OutData[PublishSendList[i]].step := STEPS_OUT.WAIT_DATA;//can get new data
+				QoS.AtLeastOnce:
+					OutData[PublishSendList[i]].step := STEPS_OUT.WAIT_PUBACK;//wait for ACK
+					IF NOT OutData[PublishSendList[i]].InDataFromFb^.DUP THEN
+						Publishsunacknowledged := Publishsunacknowledged + 1;
+					END_IF
+				QoS.ExactlyOnce:
+					OutData[PublishSendList[i]].step := STEPS_OUT.WAIT_PUBREC;//wait for REC
+					IF NOT OutData[PublishSendList[i]].InDataFromFb^.DUP THEN
+						Publishsunacknowledged := Publishsunacknowledged + 1;
+					END_IF
+			END_CASE
+		END_IF
+	END_FOR
 END_IF</xhtml>
                 </ST>
               </body>
@@ -3948,6 +4068,13 @@ END_IF</xhtml>
                     </type>
                   </variable>
                 </inputVars>
+                <localVars>
+                  <variable name="i">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                </localVars>
               </interface>
               <body>
                 <ST>
@@ -3959,37 +4086,56 @@ IF NOT COM.S_BUF.SIZE = 0 THEN
 	CountInSendNotFree := CountInSendNotFree + 1;
 END_IF
 
-IF NOT (COM.S_BUF.SIZE + SIZE_PUBACK &gt; TRANSMIT_BUFFER_SIZE) AND SendInfos.PubackNeeded THEN
-	SendInfos.PubackNeeded := FALSE;
-	COM.S_BUF.BUFFER[COM.S_BUF.SIZE] := MESSAGETYPE.PUBACK;
-	COM.S_BUF.BUFFER[COM.S_BUF.SIZE + 1] := 2;//length of 2
-	COM.S_BUF.BUFFER[COM.S_BUF.SIZE + 2] := OSCAT_BASIC.BYTE_OF_DWORD(in:= InData[SendInfos.PubackIndex].PaketID, N:= 1);
-	COM.S_BUF.BUFFER[COM.S_BUF.SIZE + 3] := OSCAT_BASIC.BYTE_OF_DWORD(in:= InData[SendInfos.PubackIndex].PaketID, N:= 0);
-	COM.S_BUF.SIZE := COM.S_BUF.SIZE + SIZE_PUBACK;//Paket size allways 4!
-	InData[SendInfos.PubackIndex].step := STEPS_IN.WAIT_DATA;
-	MqttsDoneIo := MqttsDoneIo + 1;
+IF PubackSendListCount &gt; 0 THEN
+	//SendInfos.PubackNeeded := FALSE;
+	FOR i := 0 TO PubackSendListCount - 1 DO
+		IF NOT (COM.S_BUF.SIZE + SIZE_PUBACK &gt; TRANSMIT_BUFFER_SIZE)  THEN
+			COM.S_BUF.BUFFER[COM.S_BUF.SIZE] := MESSAGETYPE.PUBACK;
+			COM.S_BUF.BUFFER[COM.S_BUF.SIZE + 1] := 2;//length of 2
+			COM.S_BUF.BUFFER[COM.S_BUF.SIZE + 2] := OSCAT_BASIC.BYTE_OF_DWORD(in:= InData[PubackSendList[i]].PaketID, N:= 1);
+			COM.S_BUF.BUFFER[COM.S_BUF.SIZE + 3] := OSCAT_BASIC.BYTE_OF_DWORD(in:= InData[PubackSendList[i]].PaketID, N:= 0);
+			COM.S_BUF.SIZE := COM.S_BUF.SIZE + SIZE_PUBACK;//Paket size allways 4!
+			InData[PubackSendList[i]].step := STEPS_IN.WAIT_DATA;
+			MqttsDoneIo := MqttsDoneIo + 1;	
+		ELSE
+			EXIT;
+		END_IF
+	END_FOR
+	
 END_IF
 
-IF NOT (COM.S_BUF.SIZE + SIZE_PUBCOMP &gt; TRANSMIT_BUFFER_SIZE) AND SendInfos.PubcompNeeded THEN
-	SendInfos.PubcompNeeded := FALSE;
-	COM.S_BUF.BUFFER[COM.S_BUF.SIZE] := MESSAGETYPE.PUBCOMP;
-	COM.S_BUF.BUFFER[COM.S_BUF.SIZE + 1] := 2;//length of 2
-	COM.S_BUF.BUFFER[COM.S_BUF.SIZE + 2] := OSCAT_BASIC.BYTE_OF_DWORD(in:= InData[SendInfos.PubcompIndex].PaketID, N:= 1);
-	COM.S_BUF.BUFFER[COM.S_BUF.SIZE + 3] := OSCAT_BASIC.BYTE_OF_DWORD(in:= InData[SendInfos.PubcompIndex].PaketID, N:= 0);
-	COM.S_BUF.SIZE := COM.S_BUF.SIZE + SIZE_PUBCOMP;//Paket size allways 4!
-	InData[SendInfos.PubcompIndex].step := STEPS_IN.WAIT_DATA;
-	MqttsDoneIo := MqttsDoneIo + 1;
+IF PubcompSendListCount &gt; 0 THEN
+	//SendInfos.PubcompNeeded := FALSE;
+	FOR i := 0 TO PubcompSendListCount - 1 DO
+		IF NOT (COM.S_BUF.SIZE + SIZE_PUBCOMP &gt; TRANSMIT_BUFFER_SIZE) THEN	
+			COM.S_BUF.BUFFER[COM.S_BUF.SIZE] := MESSAGETYPE.PUBCOMP;
+			COM.S_BUF.BUFFER[COM.S_BUF.SIZE + 1] := 2;//length of 2
+			COM.S_BUF.BUFFER[COM.S_BUF.SIZE + 2] := OSCAT_BASIC.BYTE_OF_DWORD(in:= InData[PubcompSendList[i]].PaketID, N:= 1);
+			COM.S_BUF.BUFFER[COM.S_BUF.SIZE + 3] := OSCAT_BASIC.BYTE_OF_DWORD(in:= InData[PubcompSendList[i]].PaketID, N:= 0);
+			COM.S_BUF.SIZE := COM.S_BUF.SIZE + SIZE_PUBCOMP;//Paket size allways 4!
+			InData[PubcompSendList[i]].step := STEPS_IN.WAIT_DATA;
+			MqttsDoneIo := MqttsDoneIo + 1;
+		ELSE
+			EXIT;
+		END_IF
+	END_FOR
 END_IF
 
-IF NOT (COM.S_BUF.SIZE + SIZE_PUBREC &gt; TRANSMIT_BUFFER_SIZE) AND SendInfos.PubrecNeeded THEN
-	SendInfos.PubrecNeeded := FALSE;
-	COM.S_BUF.BUFFER[COM.S_BUF.SIZE] := MESSAGETYPE.PUBREC;
-	COM.S_BUF.BUFFER[COM.S_BUF.SIZE + 1] := 2;//length of 2
-	COM.S_BUF.BUFFER[COM.S_BUF.SIZE + 2] := OSCAT_BASIC.BYTE_OF_DWORD(in:= InData[SendInfos.PubrecIndex].PaketID, N:= 1);
-	COM.S_BUF.BUFFER[COM.S_BUF.SIZE + 3] := OSCAT_BASIC.BYTE_OF_DWORD(in:= InData[SendInfos.PubrecIndex].PaketID, N:= 0);
-	COM.S_BUF.SIZE := COM.S_BUF.SIZE + SIZE_PUBREC;//Paket size allways 4!
-	InData[SendInfos.PubrecIndex].step := STEPS_IN.WAIT_PUBREL;
-	InData[SendInfos.PubrecIndex].TimeOutStarted := TRUE;
+IF PubrecSendListCount &gt; 0 THEN
+	FOR i := 0 TO PubrecSendListCount - 1 DO
+		IF NOT (COM.S_BUF.SIZE + SIZE_PUBREC &gt; TRANSMIT_BUFFER_SIZE) THEN
+			//SendInfos.PubrecNeeded := FALSE;
+			COM.S_BUF.BUFFER[COM.S_BUF.SIZE] := MESSAGETYPE.PUBREC;
+			COM.S_BUF.BUFFER[COM.S_BUF.SIZE + 1] := 2;//length of 2
+			COM.S_BUF.BUFFER[COM.S_BUF.SIZE + 2] := OSCAT_BASIC.BYTE_OF_DWORD(in:= InData[PubrecSendList[i]].PaketID, N:= 1);
+			COM.S_BUF.BUFFER[COM.S_BUF.SIZE + 3] := OSCAT_BASIC.BYTE_OF_DWORD(in:= InData[PubrecSendList[i]].PaketID, N:= 0);
+			COM.S_BUF.SIZE := COM.S_BUF.SIZE + SIZE_PUBREC;//Paket size allways 4!
+			InData[PubrecSendList[i]].step := STEPS_IN.WAIT_PUBREL;
+			InData[PubrecSendList[i]].TimeOutStarted := TRUE;
+		ELSE
+			EXIT;
+		END_IF
+	END_FOR
 END_IF
 </xhtml>
                 </ST>
@@ -4787,7 +4933,8 @@ GVL_MQTT.ProgNum := PROG_NUM.DESTROY_HANDLE_MQTT;
 {warning disable C0033}
 SysMem23.SysMemFree(dwAddress:= SplitPublishBuffer, dwSize:= MaxPublishPacketSize + SPLIT_PUBLISH_BUFFER_ADDITIONAL_RAM);
 {warning restore C0033}
-DynMemUsagePointer^ := DynMemUsagePointer^ - (MaxPublishPacketSize + SPLIT_PUBLISH_BUFFER_ADDITIONAL_RAM);</xhtml>
+DynMemUsagePointer^ := DynMemUsagePointer^ - (MaxPublishPacketSize + SPLIT_PUBLISH_BUFFER_ADDITIONAL_RAM);
+</xhtml>
                 </ST>
               </body>
               <addData />
@@ -4932,6 +5079,54 @@ ELSE
 	COM.R_BUF.SIZE := 0;
 	COM.MQTT_RCV_STATE := BYTE#0;//recive zurücksetzten	
 END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="Publish" ObjectId="69dd8b32-66a3-4c6d-a9c4-38a21807fc8e">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="data">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="DATA_TO_BROKER" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="i">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Publish := FALSE;
+FOR i := 0 TO QoS_BUFFER_SIZE - 1 DO
+	IF OutData[i].step = STEPS_OUT.WAIT_DATA THEN
+		OutData[i].InDataFromFb := data;//set Data
+		//Pakte id = slot + 1....
+		OutData[i].InDataFromFb^.PaketId := INT_TO_UINT(i + 1);
+		OutgoingPublishOrderIndexCounter := OutgoingPublishOrderIndexCounter + 1;
+		OutData[i].PUBLISHOrder :=  OutgoingPublishOrderIndexCounter;
+		OutData[i].step := STEPS_OUT.SEND_PUBLSIH;
+		CountSendedPublishs := CountSendedPublishs + 1;
+		CounterPublishSendForMonitor := CounterPublishSendForMonitor + 1;
+		OutData[i].PUBRELRepeatCounter := 0;
+		Publish := TRUE;
+		EXIT;
+	END_IF
+END_FOR</xhtml>
                 </ST>
               </body>
               <addData />
@@ -5738,6 +5933,9 @@ END_IF
 </xhtml>
                 </ST>
               </body>
+              <BuildProperties>
+                <ExcludeFromBuild>true</ExcludeFromBuild>
+              </BuildProperties>
               <addData />
             </Method>
           </data>
@@ -5984,11 +6182,42 @@ IF TriggerEdge.Q THEN
 	requestToSend := TRUE;
 END_IF
 
+IF requestToSend AND NOT WasSendet THEN
+	//try to publish
+	MyOutData.PaketData.MqttTopicLength := CommonTypesAndFunctions.LEN(Topic);
+	//don't sent zero lengt topics...
+	IF  MyOutData.PaketData.MqttTopicLength &gt; 0 THEN
+		MyOutData.PaketData.FbId := MQTT_IN_OUT^.FB_NO_AUTO;
+		MyOutData.PaketData.MessageType := MESSAGETYPE.PUBLISH;
+		MyOutData.PaketData.MessageRetain := MRetain;
+		MyOutData.PaketData.MessageQoS := QoSIn;
+		IF PublishAsString THEN
+			MyOutData.PaketData.MqttPayloadLength := CommonTypesAndFunctions.LEN(PayloadString);
+			MyOutData.PaketData.MqttPayload := PayloadString;
+		ELSE
+			MyOutData.PaketData.MqttPayloadLength := PayloadLength;
+			MyOutData.PaketData.MqttPayload := Payload;
+		END_IF
+		MyOutData.PaketData.MqttTopic := Topic;
+		MyOutData.PaketData.DUP := DUP;
+		WasSendet := TRUE;
+		LastSend := TICKS.GetTick(xDummy:= TRUE);
+	ELSE
+		{info 'check if we want to diplay topic error'}
+		;
+	END_IF
+	IF MQTT_IN_OUT^.handleFB^.Publish(data:=ADR(MyOutData)) THEN
+		WasSendet := TRUE;
+	END_IF
+END_IF
 
+
+(*
 RequestToken(request:= requestToSend AND NOT WasSendet);
 
 
 //IF requestToSend AND NOT WasSendet AND MQTT_IN_OUT^.InFree AND CheckToken(request:= )THEN
+
 IF requestToSend AND NOT WasSendet AND CheckToken() AND MQTT_IN_OUT^.InFree AND MQTT_IN_OUT^.BROKER_CONNECTED THEN
 	//try to publish
 	MyOutData.PaketData.MqttTopicLength := CommonTypesAndFunctions.LEN(Topic);
@@ -6018,6 +6247,7 @@ IF requestToSend AND NOT WasSendet AND CheckToken() AND MQTT_IN_OUT^.InFree AND 
 	END_IF
 		ReleaseToken();
 END_IF
+*)
 //place behinde send, so leave "Token" to rest....
 IF MyOutData.PaketData.SendSucsess THEN //scusses set by HANDLE_MQTT
 	MyOutData.PaketData.SendSucsess := FALSE;
@@ -6587,9 +6817,9 @@ IF SubscribeFalling.Q THEN
 	NeedUnsubscribe := TRUE;
 END_IF
 
-RequestToken(request:= (NeedSubscribe AND NOT SubscribeWasSended) OR (NeedUnsubscribe AND NOT UnsubscribeWasSended));
+//RequestToken(request:= (NeedSubscribe AND NOT SubscribeWasSended) OR (NeedUnsubscribe AND NOT UnsubscribeWasSended));
 
-IF NeedSubscribe AND NOT SubscribeWasSended AND MQTT_IN_OUT^.InFree AND CheckToken() AND MQTT_IN_OUT^.BROKER_CONNECTED THEN
+IF NeedSubscribe AND NOT SubscribeWasSended AND MQTT_IN_OUT^.InFree(* AND CheckToken()*) AND MQTT_IN_OUT^.BROKER_CONNECTED THEN
  
 	//GetSplitTopic(in:= Topic, Target:= ADR(SplitTopic), CountSplitTopicSizeExceeded:= ADR(SubscribeCountSplitTopicSizeExceeded));
 	TopicValid := SplitTopic.NewTopic(in:= Topic, test:= TRUE, SizeOfString:= 0); //CheckTopicValid(Target:= ADR(SplitTopic)); 
@@ -6612,7 +6842,7 @@ IF NeedSubscribe AND NOT SubscribeWasSended AND MQTT_IN_OUT^.InFree AND CheckTok
 	ReleaseToken();
 END_IF
 
-IF NeedUnsubscribe AND NOT UnsubscribeWasSended AND MQTT_IN_OUT^.InFree AND CheckToken() AND MQTT_IN_OUT^.BROKER_CONNECTED THEN
+IF NeedUnsubscribe AND NOT UnsubscribeWasSended AND MQTT_IN_OUT^.InFree(* AND CheckToken() *)AND MQTT_IN_OUT^.BROKER_CONNECTED THEN
 	//try to unsubscribe
 	UnsubscribeWasSended := TRUE;
 	//send free
@@ -8907,7 +9137,7 @@ MQTT_IN_OUT.COM_CONFIG.MaxTopicLevels := 200;
 
 
 //testtime(IN:= , PT:= );
-testtime(IN:= NOT testtime.Q AND sendTest, PT:= T#100MS);
+testtime(IN:= NOT testtime.Q AND sendTest, PT:= T#50MS);
 testTimeBigPublish(IN:= NOT testTimeBigPublish.Q AND testBigPublish, PT:= T#100MS);
 testTimeBigPayload(IN:= NOT testTimeBigPayload.Q AND testBigPayload, PT:= T#100MS);
 //testtime(IN:= NOT testtime.Q AND sendTest, PT:= T#10S);
@@ -10357,6 +10587,11 @@ t1.NewTopic(in:=ADR('+/+'),test:= TRUE, SizeOfString:= 0);
         </addData>
       </globalVars>
     </data>
+    <data name="http://www.3s-software.com/plcopenxml/interface" handleUnknown="implementation">
+      <Interface name="PublishConnector" ObjectId="72c0276c-3a9f-41c1-adcf-3e9bc2962d6e">
+        <addData />
+      </Interface>
+    </data>
     <data name="http://www.3s-software.com/plcopenxml/libraries" handleUnknown="implementation">
       <Libraries>
         <Library Name="#CAA Types" Namespace="CAA" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" DefaultResolution="CAA Types Extern, * (CAA Technical Workgroup)" />
@@ -10424,6 +10659,7 @@ t1.NewTopic(in:=ADR('+/+'),test:= TRUE, SizeOfString:= 0);
               <Object Name="destroy" ObjectId="4ec73c21-a461-466b-8611-c64366e7705a" />
               <Object Name="OutputPublish" ObjectId="41ef459f-dc94-4b40-9ac4-ceeadc73dff2" />
               <Object Name="MergeSplitedPublish" ObjectId="9d396c27-f37d-4dd3-95cd-3c260fb5beb7" />
+              <Object Name="Publish" ObjectId="69dd8b32-66a3-4c6d-a9c4-38a21807fc8e" />
             </Object>
             <Object Name="MQTT_CONTROL" ObjectId="9b642721-ce73-4258-9e15-8e2406aa0c86" />
             <Object Name="MQTTPublish" ObjectId="cc2d5fcf-b68d-4e57-b744-68b746e30a3b" />
@@ -10511,6 +10747,9 @@ t1.NewTopic(in:=ADR('+/+'),test:= TRUE, SizeOfString:= 0);
           <Folder Name="Exampels">
             <Object Name="TestOutOfTheBoxNoTLS" ObjectId="7710ce00-c1ae-47be-931d-77aa31d80969" />
             <Object Name="TestOutOfTheBoxTLS" ObjectId="2f0f42d5-f5e7-4150-9177-534c70b72865" />
+          </Folder>
+          <Folder Name="Interfaces">
+            <Object Name="PublishConnector" ObjectId="72c0276c-3a9f-41c1-adcf-3e9bc2962d6e" />
           </Folder>
         </Folder>
       </ProjectStructure>

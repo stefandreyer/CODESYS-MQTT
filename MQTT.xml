@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP13" creationDateTime="2018-10-16T05:39:03.2621849" />
-  <contentHeader name="MQTT" version="1.0.0.0" modificationDateTime="2018-10-16T05:30:41.3271196" organization="Stefan Dreyer" author="Stefan Dreyer">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP13" creationDateTime="2018-10-17T05:34:00.4854559" />
+  <contentHeader name="MQTT" version="1.0.0.0" modificationDateTime="2018-10-17T05:31:55.5295323" organization="Stefan Dreyer" author="Stefan Dreyer">
     <Comment>MQTT Stuff
 Using some cool stuff of OSCAT libs.
 see oscat.de
@@ -744,6 +744,16 @@ set to true if you want to use TLS</xhtml>
               </type>
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml">usage of dynamic RAM</xhtml>
+              </documentation>
+            </variable>
+            <variable name="disconnectOnBufferOverflow">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">set this to one if you want the client to act like the standardt says
+	if set to one and we receve mor publish pakets than we can handle, QoS 0 packets are lost
+	and QoS 1 and 2 packets have to be repeaded by he broker</xhtml>
               </documentation>
             </variable>
           </struct>
@@ -2679,7 +2689,7 @@ InsertStringToBufferAndLength := pos + length + 2;</xhtml>
                 <UINT />
               </type>
               <initialValue>
-                <simpleValue value="NETWORK_BUFFER_LONG_SIZE" />
+                <simpleValue value="(NETWORK_BUFFER_LONG_SIZE * 2)" />
               </initialValue>
             </variable>
             <variable name="TRANSMIT_BUFFER_SIZE">
@@ -4009,10 +4019,11 @@ IF SendInfos.SubscribeNeeded AND (NOT SomethingIsBlocking OR SendInfos.Subscribe
 		OutData[SendInfos.SubscribeIndex].step := STEPS_OUT.WAIT_SUBACK;
 	END_IF
 END_IF
-//send Publish 
+//send pending Publish 
 IF SendInfos.PublishBlocking THEN
 	IF BuildPublishPaket(PaketData:= OutData[SendInfos.PublishBlockingIndex].InDataFromFb) THEN
 		SendInfos.PublishBlocking := FALSE;
+		PublishSendDone(slot:=ADR(OutData[SendInfos.PublishBlockingIndex]));
 	END_IF
 END_IF
 
@@ -4025,27 +4036,8 @@ IF (PublishSendListCount &gt; 0 AND NOT SomethingIsBlocking) THEN
 			SendInfos.PublishBlockingIndex := PublishSendList[i];
 			EXIT;
 		ELSE 
-			//SendInfos.PublishNeeded := FALSE;
 			SendInfos.PublishBlocking := FALSE;
-			//publish gone, increase token
-		
-			OutData[PublishSendList[i]].TimeOutStarted := TRUE;//start Timeout
-			CASE OutData[PublishSendList[i]].InDataFromFb^.MessageQoS OF
-				QoS.AtMostOnce:
-				//paket gone and bye bye, on QoS 0 
-				OutData[PublishSendList[i]].InDataFromFb^.SendSucsess := TRUE;
-				OutData[PublishSendList[i]].step := STEPS_OUT.WAIT_DATA;//can get new data
-				QoS.AtLeastOnce:
-					OutData[PublishSendList[i]].step := STEPS_OUT.WAIT_PUBACK;//wait for ACK
-					IF NOT OutData[PublishSendList[i]].InDataFromFb^.DUP THEN
-						Publishsunacknowledged := Publishsunacknowledged + 1;
-					END_IF
-				QoS.ExactlyOnce:
-					OutData[PublishSendList[i]].step := STEPS_OUT.WAIT_PUBREC;//wait for REC
-					IF NOT OutData[PublishSendList[i]].InDataFromFb^.DUP THEN
-						Publishsunacknowledged := Publishsunacknowledged + 1;
-					END_IF
-			END_CASE
+			PublishSendDone(slot:=ADR(OutData[PublishSendList[i]]));
 		END_IF
 	END_FOR
 END_IF</xhtml>
@@ -4633,11 +4625,16 @@ IF OutData THEN
 			{info 'check here if we want to disconect'}
 			//if there is retain data stored by the broker you will end in a loop of connect and disconnect, because
 			//you will allways get an to big packet....
-			//only if QoS &gt; 0
-			IF ReciveQoSLevel &lt;&gt; QoS.AtMostOnce THEN
-				InData[FreeSlot].step := STEPS_IN.WAIT_DATA;//slot free, broker have to repeat
+			IF MQTT_IN_OUT^.disconnectOnBufferOverflow THEN
+				DoDisconnect := TRUE;
+				RETURN;
+			ELSE
+				//only if QoS &gt; 0
+				IF ReciveQoSLevel &lt;&gt; QoS.AtMostOnce THEN
+					InData[FreeSlot].step := STEPS_IN.WAIT_DATA;//slot free, broker have to repeat
+				END_IF
+				PublishReciveBufferCountFull := PublishReciveBufferCountFull + 1;
 			END_IF
-			PublishReciveBufferCountFull := PublishReciveBufferCountFull + 1;
 		ELSE
 			//now push data to buffer...
 			//first insert topic length
@@ -5127,6 +5124,45 @@ FOR i := 0 TO QoS_BUFFER_SIZE - 1 DO
 		EXIT;
 	END_IF
 END_FOR</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="PublishSendDone" ObjectId="e9258dd2-b3b8-4973-b15f-4cab2caff9e9">
+              <interface>
+                <inputVars>
+                  <variable name="slot">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="MQTT_OUT_DATA" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">slot^.TimeOutStarted := TRUE;//start Timeout
+CASE slot^.InDataFromFb^.MessageQoS OF
+	QoS.AtMostOnce:
+	//paket gone and bye bye, on QoS 0 
+	slot^.InDataFromFb^.SendSucsess := TRUE;
+	slot^.step := STEPS_OUT.WAIT_DATA;//can get new data
+	QoS.AtLeastOnce:
+		slot^.step := STEPS_OUT.WAIT_PUBACK;//wait for ACK
+		IF NOT slot^.InDataFromFb^.DUP THEN
+			Publishsunacknowledged := Publishsunacknowledged + 1;
+		END_IF
+	QoS.ExactlyOnce:
+		slot^.step := STEPS_OUT.WAIT_PUBREC;//wait for REC
+		IF NOT slot^.InDataFromFb^.DUP THEN
+			Publishsunacknowledged := Publishsunacknowledged + 1;
+		END_IF
+END_CASE</xhtml>
                 </ST>
               </body>
               <addData />
@@ -8834,6 +8870,16 @@ tNewRun(in := step = 60,PT:= T#1M);</xhtml>
       </pou>
       <pou name="TestMqtt" pouType="functionBlock">
         <interface>
+          <inputVars>
+            <variable name="clientID">
+              <type>
+                <string />
+              </type>
+              <initialValue>
+                <simpleValue value="'testCodesys'" />
+              </initialValue>
+            </variable>
+          </inputVars>
           <localVars>
             <variable name="MQTT">
               <type>
@@ -9124,7 +9170,7 @@ TestSubscribe:SD_MQTT.TestSubscribe;</xhtml>
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">MQTT_IN_OUT.ClientID :='testCodesys';
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">MQTT_IN_OUT.ClientID :=clientID;
 MQTT_IN_OUT.COM_CONFIG.MaxPayloadSize :=50000;
 MQTT_IN_OUT.COM_CONFIG.MaxTopicLevels := 200;
 //MQTT_IN_OUT.PORT := 1883;
@@ -10660,6 +10706,7 @@ t1.NewTopic(in:=ADR('+/+'),test:= TRUE, SizeOfString:= 0);
               <Object Name="OutputPublish" ObjectId="41ef459f-dc94-4b40-9ac4-ceeadc73dff2" />
               <Object Name="MergeSplitedPublish" ObjectId="9d396c27-f37d-4dd3-95cd-3c260fb5beb7" />
               <Object Name="Publish" ObjectId="69dd8b32-66a3-4c6d-a9c4-38a21807fc8e" />
+              <Object Name="PublishSendDone" ObjectId="e9258dd2-b3b8-4973-b15f-4cab2caff9e9" />
             </Object>
             <Object Name="MQTT_CONTROL" ObjectId="9b642721-ce73-4258-9e15-8e2406aa0c86" />
             <Object Name="MQTTPublish" ObjectId="cc2d5fcf-b68d-4e57-b744-68b746e30a3b" />

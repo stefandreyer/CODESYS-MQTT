@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP13" creationDateTime="2018-10-17T05:34:00.4854559" />
-  <contentHeader name="MQTT" version="1.0.0.0" modificationDateTime="2018-10-17T05:31:55.5295323" organization="Stefan Dreyer" author="Stefan Dreyer">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP13" creationDateTime="2018-10-31T20:40:25.0923644" />
+  <contentHeader name="MQTT" version="1.0.0.0" modificationDateTime="2018-10-31T20:39:26.6829539" organization="Stefan Dreyer" author="Stefan Dreyer">
     <Comment>MQTT Stuff
 Using some cool stuff of OSCAT libs.
 see oscat.de
@@ -981,6 +981,9 @@ set to true if you want to use TLS</xhtml>
             <ObjectId>5ccc79d7-9560-4034-9035-9d8c8e8be5c7</ObjectId>
           </data>
         </addData>
+        <documentation>
+          <xhtml xmlns="http://www.w3.org/1999/xhtml">used for test cases...</xhtml>
+        </documentation>
       </dataType>
       <dataType name="REMAINING_LENGTH_RETURN">
         <baseType>
@@ -1074,9 +1077,7 @@ set to true if you want to use TLS</xhtml>
                 <BOOL />
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">this index is to be published
-	PublishIndex:INT;
-	PublishNeeded:BOOL := FALSE;</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">this index is to be published</xhtml>
               </documentation>
             </variable>
             <variable name="PublishBlockingIndex">
@@ -1089,9 +1090,7 @@ set to true if you want to use TLS</xhtml>
                 <INT />
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">this index is to be published
-	PubrelIndex:INT;
-	PubrelNeeded:BOOL := FALSE;</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">this index is to be published</xhtml>
               </documentation>
             </variable>
             <variable name="PingNeeded">
@@ -1258,12 +1257,13 @@ Greatings
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">IF NOT init THEN
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">//here init is done
+IF NOT init THEN
 	init := TRUE;
 	MQTT_IN_OUT.ClientID := CONCAT('CodesysMqtt',TO_STRING(TICKS.GetTick(xDummy:= TRUE)));
 	publish.SetMqttInOut(MQTT_IN_OUT:= ADR(MQTT_IN_OUT));
 	subscribe.SetMqttInOut(MQTT_IN_OUT:= ADR(MQTT_IN_OUT));
-	
+	//init state FB, so you only have to call state();without parameters... 
 	State.Init(
 	State:= ADR(varSend), 
 	Topic:= ADR('CODESYS-MQTT-BY-SD/State'), 
@@ -1274,8 +1274,10 @@ Greatings
 	QoS:= QoS.ExactlyOnce, 
 	RetainMqtt:= TRUE);
 END_IF
+//timer for repeating packets
 timerSend(in := NOT varSend, PT := T#2S);
 varSend := timerSend.Q; 
+//call of MQTT client
 MQTTClient(
 	MQTT_INFO:= MQTTInfo, 
 	MQTT_IN_OUT:= MQTT_IN_OUT, 
@@ -1283,8 +1285,11 @@ MQTTClient(
 	URL:= client, 
 	TIMEOUT:= T#5S, 
 	TLS:= FALSE);
-Payload:= TO_STRING(TICKS.GetTick(xDummy:= TRUE));
-
+//build payload
+IF varSend THEN
+	Payload:= TO_STRING(TICKS.GetTick(xDummy:= TRUE));
+END_IF
+//Publish Payload
 publish(
 	Topic:= ADR('CODESYS-MQTT-BY-SD/Tick'), 
 	PayloadString:= ADR(Payload), 
@@ -1292,19 +1297,19 @@ publish(
 	QoSIn:= QoS.ExactlyOnce, 
 	MRetain:= TRUE, 
 	send:= varSend);
-	
+//Subscribe to topic
 subscribe(
 	Subscribe:= TRUE, 
 	Topic:= ADR('CODESYS-MQTT-BY-SD/Tick'), 
 	QoSSubscribe:= QoS.ExactlyOnce, 
 	ExpectingString:= TRUE);
-
+//if recived copy payload to local var...
 IF subscribe.Recived THEN
 	ReciveSubscribePayload := subscribe.PayloadString^;
 	ReciveSubscribeTopic := subscribe.TopicOut^;
 END_IF
 
-
+//call of state FB
 State();</xhtml>
           </ST>
         </body>
@@ -1399,11 +1404,13 @@ State();</xhtml>
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">IF NOT init THEN
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">//here init is done
+IF NOT init THEN
 	init := TRUE;
 	MQTT_IN_OUT.ClientID := CONCAT('CodesysMqtt',TO_STRING(TICKS.GetTick(xDummy:= TRUE)));
 	publish.SetMqttInOut(MQTT_IN_OUT:= ADR(MQTT_IN_OUT));
 	subscribe.SetMqttInOut(MQTT_IN_OUT:= ADR(MQTT_IN_OUT));
+	//init state FB, so you only have to call state();without parameters... 
 	State.Init(
 	State:= ADR(varSend), 
 	Topic:= ADR('CODESYS-MQTT-BY-SD/State'), 
@@ -1415,8 +1422,10 @@ State();</xhtml>
 	RetainMqtt:= TRUE);
 	MQTT_IN_OUT.TLS_CONFIG := ADR(TLS_CONFIG);
 END_IF
+//timer for repeating packets
 timerSend(in := NOT varSend, PT := T#2S);
 varSend := timerSend.Q; 
+//call of MQTT client
 MQTTClient(
 	MQTT_INFO:= MQTTInfo, 
 	MQTT_IN_OUT:= MQTT_IN_OUT, 
@@ -1424,8 +1433,11 @@ MQTTClient(
 	URL:= client, 
 	TIMEOUT:= T#5S, 
 	TLS:= TRUE);
-Payload:= TO_STRING(TICKS.GetTick(xDummy:= TRUE));
-
+//build payload
+IF varSend THEN
+	Payload:= TO_STRING(TICKS.GetTick(xDummy:= TRUE));
+END_IF
+//Publish Payload
 publish(
 	Topic:= ADR('CODESYS-MQTT-BY-SD/Tick'), 
 	PayloadString:= ADR(Payload), 
@@ -1433,19 +1445,19 @@ publish(
 	QoSIn:= QoS.ExactlyOnce, 
 	MRetain:= TRUE, 
 	send:= varSend);
-	
+//Subscribe to topic	
 subscribe(
 	Subscribe:= TRUE, 
 	Topic:= ADR('CODESYS-MQTT-BY-SD/Tick'), 
 	QoSSubscribe:= QoS.ExactlyOnce, 
 	ExpectingString:= TRUE);
-
+//if recived copy payload to local var...
 IF subscribe.Recived THEN
 	ReciveSubscribePayload := subscribe.PayloadString^;
 	ReciveSubscribeTopic := subscribe.TopicOut^;
 END_IF
 
-
+//call of state FB
 State();</xhtml>
           </ST>
         </body>
@@ -1692,7 +1704,7 @@ END_IF
             </variable>
           </localVars>
           <documentation>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">here no move of data, cal remainig length bevor moving topic and paylod, use this for 
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">here no move of data, call remainig length bevor moving topic and paylod, use this for 
 borders are given in the mqtt doku
 use this for publish pakets</xhtml>
           </documentation>
@@ -2216,7 +2228,7 @@ InsertStringToBufferAndLength := pos + length + 2;</xhtml>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml">Repeated pings untill disconnect</xhtml>
               </documentation>
             </variable>
-            <variable name="Publishsunacknowledged">
+            <variable name="PublishsUnacknowledged">
               <type>
                 <UINT />
               </type>
@@ -2808,7 +2820,7 @@ InsertStringToBufferAndLength := pos + length + 2;</xhtml>
           <documentation>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">
 var/log/mosquitto/mosquitto.log
-Messsages are not beeing repeatet, if timout for an awnser then connection is cancelde, neu estableshed and de publisher have to start new
+Messsages are not beeing repeatet, if timout for an answer then connection is canceled, new established and the publisher have to start new
 Start the command line subscriber:
 mosquitto_sub -v -t 'test/topic'
 mosquitto_sub -v -h test.mosquitto.org -t 'test/topic'
@@ -2834,11 +2846,6 @@ sudo chmod -v a=r /tmp/mosquitto.log
 TODO: Take care of clean session, is enabled, do it paramable?
 
 layout publish recive buffer:
-	prepaerd for Sizese larger 256 byte
-	0..1 --&gt; size of topic
-	2..x --&gt; topic string
-	x+1..x+2 --&gt; size of payload
-	x+3..y --&gt; payload 
 
 	recive publish buffer layout:
 	0 byte 3 of topic length of udint
@@ -2923,7 +2930,7 @@ CASE step OF
 
 	00:	IF ENABLE THEN
 			MQTT_IN_OUT.handleFB := THIS;
-	
+			PublishsUnacknowledged := 0;
 			PUBREC_ERROR_INDEX := 0;
 			CountRepeatedPingDisconnect := 0;
 			SendetBytes := 0;
@@ -2931,8 +2938,6 @@ CASE step OF
 			PublishSplited := FALSE;
 			DoDisconnect := FALSE;
 			SendInfos.PingNeeded := FALSE;
-			//SendInfos.PublishNeeded := FALSE;
-			//SendInfos.PubrelNeeded := FALSE;
 			SendInfos.SubscribeNeeded := FALSE;
 			SendInfos.UnsubscribeNeeded := FALSE;
 			StepBuildPublish := 0;
@@ -3276,13 +3281,6 @@ FOR i := 0 TO QoS_BUFFER_SIZE - 1 DO
 		STEPS_OUT.SEND_PUBLSIH:
 			PublishSendList[PublishSendListCount] := i;
 			PublishSendListCount := PublishSendListCount + 1;
-			//check if my paket ID is the lowest to send it
-			(*IF OutData[i].PUBLISHOrder &lt; PublishLastHighest THEN
-				SendInfos.PublishIndex := i;
-				SendInfos.PublishNeeded := TRUE;
-				PublishLastHighest := OutData[i].PUBLISHOrder;
-				OutData[i].WaitsForBuffFree := OutData[i].WaitsForBuffFree + 1;
-			END_IF*)
 			
 		STEPS_OUT.WAIT_PUBACK:
 			IF OutData[i].TimeOutStarted AND OutData[i].TimeOut.Q THEN
@@ -3305,13 +3303,6 @@ FOR i := 0 TO QoS_BUFFER_SIZE - 1 DO
 		STEPS_OUT.SEND_PUBREL:
 			PubrelSendList[PubrelSendListCount] := i;
 			PubrelSendListCount := PubrelSendListCount + 1;
-			
-			//check if my Pubrec num is the lowest to send it
-			(*IF OutData[i].PUBRECOrder &lt; PubrelLastHighest AND NOT SendInfos.PubrelNeeded THEN
-				SendInfos.PubrelIndex := i;
-				SendInfos.PubrelNeeded := TRUE;
-				PubrelLastHighest := OutData[i].PUBRECOrder;
-			END_IF*)
 			
 		STEPS_OUT.WAIT_PUBCOMP:
 			IF OutData[i].TimeOutStarted AND OutData[i].TimeOut.Q THEN
@@ -3476,27 +3467,15 @@ FOR i := 0 TO QoS_BUFFER_SIZE - 1 DO
 		STEPS_IN.SEND_PUBACK:
 			PubackSendList[PubackSendListCount] := i;
 			PubackSendListCount := PubackSendListCount + 1;
-			(*IF InData[i].PUBLISHOrder &lt; PublishLastHighest AND NOT SendInfos.PubackNeeded THEN
-				SendInfos.PubackIndex := i;
-				SendInfos.PubackNeeded := TRUE;
-				PublishLastHighest := InData[i].PUBLISHOrder;
-			END_IF*)
+			
 		STEPS_IN.SEND_PUBREC:
 			PubrecSendList[PubrecSendListCount] := i;
 			PubrecSendListCount := PubrecSendListCount + 1;
-		(*IF InData[i].PUBLISHOrder &lt; PublishLastHighest AND NOT SendInfos.PubrecNeeded THEN
-				SendInfos.PubrecIndex := i;
-				SendInfos.PubrecNeeded := TRUE;
-				PublishLastHighest := InData[i].PUBLISHOrder;
-		END_IF*)
+		
 		STEPS_IN.SEND_PUBCOMP:
 			PubcompSendList[PubcompSendListCount] := i;
 			PubcompSendListCount := PubcompSendListCount + 1;
-		(*IF InData[i].PUBCOMPOrder &lt; PubcompLastHighest AND NOT SendInfos.PubcompNeeded THEN
-				SendInfos.PubcompIndex := i;
-				SendInfos.PubcompNeeded := TRUE;
-				PubcompLastHighest := InData[i].PUBCOMPOrder;
-		END_IF*)
+		
 	END_CASE
 	//make sure timer is set to 0 if timeout resetet
 	InData[i].TimeOut(IN:= InData[i].TimeOutStarted, PT:= MyConstants.REPEAT_TIMEOUT);
@@ -4701,60 +4680,6 @@ ParseIncomingPublish := UDINT_TO_UINT(PayloadPosStart + PayloadSize);//index of 
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="GetNextPublishFreePos" ObjectId="3dc7a6d6-b031-4ca1-848b-e6b55ba6c2ae">
-              <interface>
-                <returnType>
-                  <UINT />
-                </returnType>
-                <localVars>
-                  <variable name="i">
-                    <type>
-                      <UINT />
-                    </type>
-                  </variable>
-                </localVars>
-                <addData>
-                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
-                    <AccessModifiers Internal="true" />
-                  </data>
-                </addData>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">GetNextPublishFreePos := 0;
-GVL_MQTT.ProgNum := PROG_NUM.GetBufferFreePos;
-IF PublishReciveBufferCount = 0 THEN
-	RETURN;
-END_IF
-
-//now go thrue all items to get next pos
-FOR i := 0 TO PublishReciveBufferCount - 1 DO
-	//get topic size
-	GetNextPublishFreePos := GetNextPublishFreePos + DWORD_TO_WORD(OSCAT_BASIC.DWORD_OF_BYTE(B3:= PublishReciveBuffer[GetNextPublishFreePos],
-					 B2:= PublishReciveBuffer[GetNextPublishFreePos + 1],
-					 B1:= PublishReciveBuffer[GetNextPublishFreePos + 2],
-					 B0:= PublishReciveBuffer[GetNextPublishFreePos + 3]));
-	//go payload pos
-	GetNextPublishFreePos := GetNextPublishFreePos + SIZE_PAKET_BUFFER_HEADER;
-	//get payload size
-	GetNextPublishFreePos := GetNextPublishFreePos + DWORD_TO_WORD(OSCAT_BASIC.DWORD_OF_BYTE(B3:= PublishReciveBuffer[GetNextPublishFreePos],
-					 B2:= PublishReciveBuffer[GetNextPublishFreePos + 1],
-					 B1:= PublishReciveBuffer[GetNextPublishFreePos + 2],
-					 B0:= PublishReciveBuffer[GetNextPublishFreePos + 3]));
-	//go go next topic pos, or free pos
-	GetNextPublishFreePos := GetNextPublishFreePos + SIZE_PAKET_BUFFER_HEADER;
-	
-END_FOR
-</xhtml>
-                </ST>
-              </body>
-              <BuildProperties>
-                <ExcludeFromBuild>true</ExcludeFromBuild>
-              </BuildProperties>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
             <Method name="CheckLenghtBuffer" ObjectId="d2d33c09-9dff-4eb5-b512-251000170b1a">
               <interface>
                 <returnType>
@@ -4925,12 +4850,13 @@ END_IF</xhtml>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SplitTopic.destroy();
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">//cannot decrease memmory usage here at reset, this will trigger an accsess violation on windows...
+//DynMemUsagePointer^ := DynMemUsagePointer^ - (MaxPublishPacketSize + SPLIT_PUBLISH_BUFFER_ADDITIONAL_RAM);
+SplitTopic.destroy();
 GVL_MQTT.ProgNum := PROG_NUM.DESTROY_HANDLE_MQTT;
 {warning disable C0033}
 SysMem23.SysMemFree(dwAddress:= SplitPublishBuffer, dwSize:= MaxPublishPacketSize + SPLIT_PUBLISH_BUFFER_ADDITIONAL_RAM);
 {warning restore C0033}
-DynMemUsagePointer^ := DynMemUsagePointer^ - (MaxPublishPacketSize + SPLIT_PUBLISH_BUFFER_ADDITIONAL_RAM);
 </xhtml>
                 </ST>
               </body>
@@ -5950,32 +5876,6 @@ DbPointerIo := TRUE;</xhtml>
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="CheckToken" ObjectId="d147036f-655b-41a3-9039-69fc31885cc5">
-              <interface>
-                <returnType>
-                  <BOOL />
-                </returnType>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">
-IF MQTT_IN_OUT^.FB_NO_AUTO =  MQTT_IN_OUT^.FB_NO_AUTO_TOKEN AND TokenRequested THEN
-	CheckToken := TRUE;
-
-END_IF
-IF MQTT_IN_OUT^.FB_NO_AUTO =  MQTT_IN_OUT^.FB_NO_AUTO_TOKEN AND NOT TokenRequested THEN
-	MQTT_IN_OUT^.FB_NO_AUTO_TOKEN := MQTT_IN_OUT^.FB_NO_AUTO_TOKEN + 1;	
-END_IF
-</xhtml>
-                </ST>
-              </body>
-              <BuildProperties>
-                <ExcludeFromBuild>true</ExcludeFromBuild>
-              </BuildProperties>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
             <Method name="RequestToken" ObjectId="c76fd038-87b5-4695-8477-ac9be3fd0c0e">
               <interface>
                 <inputVars>
@@ -6049,7 +5949,7 @@ TokenRequested := FALSE;</xhtml>
                 <BOOL />
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">set this to true to bublish a string, else the data is excpected on Payload</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">set this to true to publish a string, else the data is expected on Payload</xhtml>
               </documentation>
             </variable>
             <variable name="Payload">
@@ -6119,7 +6019,7 @@ TokenRequested := FALSE;</xhtml>
                 <BOOL />
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">Timout of sendding while connection io --&gt; to much load</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">Timout of sending while connection io --&gt; to much load</xhtml>
               </documentation>
             </variable>
             <variable name="CountSend">
@@ -6191,7 +6091,7 @@ TokenRequested := FALSE;</xhtml>
           </addData>
           <documentation>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">be aware, don't change payload an topic until send is done!!!
-check pointer if valid
+
 </xhtml>
           </documentation>
         </interface>
@@ -6236,7 +6136,7 @@ IF requestToSend AND NOT WasSendet THEN
 		END_IF
 		MyOutData.PaketData.MqttTopic := Topic;
 		MyOutData.PaketData.DUP := DUP;
-		WasSendet := TRUE;
+		//WasSendet := TRUE;
 		LastSend := TICKS.GetTick(xDummy:= TRUE);
 	ELSE
 		{info 'check if we want to diplay topic error'}
@@ -6244,48 +6144,13 @@ IF requestToSend AND NOT WasSendet THEN
 	END_IF
 	IF MQTT_IN_OUT^.handleFB^.Publish(data:=ADR(MyOutData)) THEN
 		WasSendet := TRUE;
-	END_IF
-END_IF
-
-
-(*
-RequestToken(request:= requestToSend AND NOT WasSendet);
-
-
-//IF requestToSend AND NOT WasSendet AND MQTT_IN_OUT^.InFree AND CheckToken(request:= )THEN
-
-IF requestToSend AND NOT WasSendet AND CheckToken() AND MQTT_IN_OUT^.InFree AND MQTT_IN_OUT^.BROKER_CONNECTED THEN
-	//try to publish
-	MyOutData.PaketData.MqttTopicLength := CommonTypesAndFunctions.LEN(Topic);
-	//don't sent zero lengt topics...
-	IF  MyOutData.PaketData.MqttTopicLength &gt; 0 THEN
-		//send free
-		MQTT_IN_OUT^.IN := ADR(MyOutData);
-		MQTT_IN_OUT^.InFree := FALSE;
-		MyOutData.PaketData.FbId := MQTT_IN_OUT^.FB_NO_AUTO;
-		MyOutData.PaketData.MessageType := MESSAGETYPE.PUBLISH;
-		MyOutData.PaketData.MessageRetain := MRetain;
-		MyOutData.PaketData.MessageQoS := QoSIn;
-		IF PublishAsString THEN
-			MyOutData.PaketData.MqttPayloadLength := CommonTypesAndFunctions.LEN(PayloadString);
-			MyOutData.PaketData.MqttPayload := PayloadString;
-		ELSE
-			MyOutData.PaketData.MqttPayloadLength := PayloadLength;
-			MyOutData.PaketData.MqttPayload := Payload;
-		END_IF
-		MyOutData.PaketData.MqttTopic := Topic;
-		MyOutData.PaketData.DUP := DUP;
-		WasSendet := TRUE;
-		LastSend := TICKS.GetTick(xDummy:= TRUE);
 	ELSE
-		{info 'check if we want to diplay topic error'}
-		;
+		WasSendet := FALSE;
 	END_IF
-		ReleaseToken();
 END_IF
-*)
-//place behinde send, so leave "Token" to rest....
-IF MyOutData.PaketData.SendSucsess THEN //scusses set by HANDLE_MQTT
+
+
+IF MyOutData.PaketData.SendSucsess THEN //sucsses set by HANDLE_MQTT
 	MyOutData.PaketData.SendSucsess := FALSE;
 	//paket away...
 	WasSendet := FALSE;
@@ -6617,8 +6482,7 @@ THIS^.QoS := QoS;
                 <derived name="QoS" />
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">Topic:STRING(MyConstants.COM_STRING_SIZE);
-QoS level</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">QoS level</xhtml>
               </documentation>
             </variable>
             <variable name="ExpectingString">
@@ -6689,7 +6553,7 @@ QoS level</xhtml>
                 <BOOL />
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">error if subscribtion on broker fails or if topic isn't vailid</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">error if subscribtion on broker fails or if topic isn't valid</xhtml>
               </documentation>
             </variable>
             <variable name="TopicValid">
@@ -6817,7 +6681,7 @@ QoS level</xhtml>
             </data>
           </addData>
           <documentation>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">use this to subscribe to a topic, if the topic you want to subscribe isn't vailid you get an error on output SubscribeFail
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">use this to subscribe to a topic, if the topic you want to subscribe isn't valid you get an error on output SubscribeFail
  </xhtml>
           </documentation>
         </interface>
@@ -6853,11 +6717,10 @@ IF SubscribeFalling.Q THEN
 	NeedUnsubscribe := TRUE;
 END_IF
 
-//RequestToken(request:= (NeedSubscribe AND NOT SubscribeWasSended) OR (NeedUnsubscribe AND NOT UnsubscribeWasSended));
+
 
 IF NeedSubscribe AND NOT SubscribeWasSended AND MQTT_IN_OUT^.InFree(* AND CheckToken()*) AND MQTT_IN_OUT^.BROKER_CONNECTED THEN
  
-	//GetSplitTopic(in:= Topic, Target:= ADR(SplitTopic), CountSplitTopicSizeExceeded:= ADR(SubscribeCountSplitTopicSizeExceeded));
 	TopicValid := SplitTopic.NewTopic(in:= Topic, test:= TRUE, SizeOfString:= 0); //CheckTopicValid(Target:= ADR(SplitTopic)); 
 	IF TopicValid = TOPIC_VALID.TOPIC_VALID THEN
 		//try to subscribe
@@ -6921,7 +6784,6 @@ END_IF
 
 //check if i get an paket //check if topic fits to me....
 IF MQTT_IN_OUT^.OUT.DataRecived AND SubscribeDone THEN 
-	//IF CheckTopicMatchToMe() = TOPIC_MATCH.TOPIC_MATCHES THEN
 	IF SplitTopic.CheckTopicMatchToMe(with:= MQTT_IN_OUT^.OUT.Topics) = TOPIC_MATCH.TOPIC_MATCHES THEN
 		Recived := TRUE;
 		TopicOut := MQTT_IN_OUT^.OUT.MqttTopic;
@@ -10699,7 +10561,6 @@ t1.NewTopic(in:=ADR('+/+'),test:= TRUE, SizeOfString:= 0);
               <Object Name="SendInData" ObjectId="a7ea802c-6124-4ca3-9c46-9debb67a877b" />
               <Object Name="ParseIncoming" ObjectId="a0195934-de34-4282-bca7-4efe8c4c5b8c" />
               <Object Name="ParseIncomingPublish" ObjectId="e0043f8f-3a31-4d50-8659-2ad99197624b" />
-              <Object Name="GetNextPublishFreePos" ObjectId="3dc7a6d6-b031-4ca1-848b-e6b55ba6c2ae" />
               <Object Name="CheckLenghtBuffer" ObjectId="d2d33c09-9dff-4eb5-b512-251000170b1a" />
               <Object Name="FB_Exit" ObjectId="b9c05d0c-ef6e-4249-9bbd-be68de915780" />
               <Object Name="destroy" ObjectId="4ec73c21-a461-466b-8611-c64366e7705a" />
@@ -10712,7 +10573,6 @@ t1.NewTopic(in:=ADR('+/+'),test:= TRUE, SizeOfString:= 0);
             <Object Name="MQTTPublish" ObjectId="cc2d5fcf-b68d-4e57-b744-68b746e30a3b" />
             <Object Name="MQTTBase" ObjectId="22db369a-9de1-444e-be59-cbfd328e69c6">
               <Object Name="SetMqttInOut" ObjectId="3e841b5d-b781-44dd-ba86-78e29089f6be" />
-              <Object Name="CheckToken" ObjectId="d147036f-655b-41a3-9039-69fc31885cc5" />
               <Object Name="RequestToken" ObjectId="c76fd038-87b5-4695-8477-ac9be3fd0c0e" />
               <Object Name="ReleaseToken" ObjectId="61892de8-a34d-4b3a-82aa-a1e5b61fdca4" />
             </Object>

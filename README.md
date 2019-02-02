@@ -9,7 +9,7 @@ MQTT client for CODESYS
 
 - now is done with callbacks
 - see the TestMQTTGithubInterfaceExampleTopicAndPayload examples, there you can see the benefits.
-You can publish direkt to the instance an variable name, and the lib is doing the rest
+You can publish direkt to the instance and variable name, and the lib is doing the rest
 have fun!
 
 # Dependencies

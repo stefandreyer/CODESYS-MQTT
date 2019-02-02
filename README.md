@@ -3,7 +3,10 @@ MQTT client for CODESYS
 
 # NEWS
 - 64bit support, but you need to enable dynamic memory allocation
-- subscription now works with new approach
+- much faster testHighReciveSplitPayload() works with nearly 600 sends, recives per second!
+
+# subscription now works with new approach
+
 - now is done with callbacks
 - see the TestMQTTGithubInterfaceExampleTopicAndPayload examples, there you can see the benefits.
 You can publish direkt to the instance an variable name, and the lib is doing the rest

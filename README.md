@@ -1,6 +1,14 @@
 # CODESYS-MQTT
 MQTT client for CODESYS
 
+# NEWS
+- 64bit support, but you need to enable dynamic memory allocation
+- subscription now works with new approach
+- now is done with callbacks
+- see the TestMQTTGithubInterfaceExampleTopicAndPayload examples, there you can see the benefits.
+You can publish direkt to the instance an variable name, and the lib is doing the rest
+have fun!
+
 # Dependencies
 
 all needed Libraries can be found at
@@ -15,6 +23,8 @@ all needed Libraries can be found at
 - unlimited subscribe FBs(by library)
 - TLS support(without certificates)
 - FBs for easy transmit of values and states
+- nice collection FB for collecting subscription FBs
+- usefull FBs for callbacks, for list use too
 
 # New value FB
 
@@ -31,3 +41,5 @@ will topic is now build with client id
 # Examples
 
 nice example projets for Windows and RaspberryPi with and without TLS using test.mosquitto.org, so no own broker needed
+
+

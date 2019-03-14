@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14" creationDateTime="2019-02-05T05:32:10.3765761" />
-  <contentHeader name="MQTT" version="1.0.0.0" modificationDateTime="2019-02-04T05:34:23.4609065" organization="Stefan Dreyer" author="Stefan Dreyer">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14" creationDateTime="2019-03-14T05:20:38.8666677" />
+  <contentHeader name="MQTT" version="1.0.0.0" modificationDateTime="2019-02-27T05:34:40.4236441" organization="Stefan Dreyer" author="Stefan Dreyer">
     <Comment>MQTT Stuff
 Using some cool stuff of OSCAT libs.
 see oscat.de
@@ -2301,7 +2301,7 @@ END_IF
             <xhtml xmlns="http://www.w3.org/1999/xhtml">GetRemainingLength.Error := FALSE;
 GetRemainingLength.SizeRemainingLength:= 0;
 
-GetRemainingLength.Error := FALSE;
+GetRemainingLength.BuffToSmall := FALSE;
 BufferIndex := pos + 1;
 REPEAT
 	IF BufferIndex &gt; (BuffSize - 1) THEN
@@ -2318,7 +2318,7 @@ REPEAT
 	END_IF
 	GetRemainingLength.SizeRemainingLength := GetRemainingLength.SizeRemainingLength + 1;
 UNTIL
-	(TmpByte AND 128) = 0 OR GetRemainingLength.RemainingLength = 0 OR GetRemainingLength.BuffToSmall
+	TmpByte.7 = FALSE  OR GetRemainingLength.RemainingLength = 0 OR GetRemainingLength.BuffToSmall
 END_REPEAT
 GetRemainingLength.IndexAfterRemainingLength := BufferIndex;</xhtml>
           </ST>
@@ -3753,8 +3753,8 @@ MyTarget := Target;
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">MyPayload^ := Data.PayloadString^;
-MyTopic^ := Data.TopicOut^;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">MEM.MemMove(pSource:= Data.PayloadString, pDestination:= MyPayload, uiNumberOfBytes:= TO_UINT(data.PayloadSize + 1));
+MEM.MemMove(pSource:= Data.TopicOut, pDestination:= MyTopic, uiNumberOfBytes:= CommonTypesAndFunctions.len(Data.TopicOut) + 1);
 
 </xhtml>
                 </ST>
@@ -6564,7 +6564,7 @@ ParseIncomingPublish := UDINT_TO_UINT(PayloadPosStart + PayloadSize);
 
 IF OutData THEN
 		
-		//new approch: in buffer for big packets we can move as we want. in network buffer, we can move topic
+		//new approach: in buffer for big packets we can move as we want. in network buffer, we can move topic
 		//without trobble down, length information isn't needed anymore. if we move in network buffer we store 
 		//the following two bytes of payload, making the output and there after we restore them.
 		//this we do in buffer for big packets too, because it isn't expensive
@@ -6702,35 +6702,38 @@ NeedBufferMove := FALSE;
 CASE RecivePakteType OF
 
 	MESSAGETYPE.PUBLISH:
-		IF IdxIn + 1 &gt; COM.R_BUF.SIZE THEN//1 for max size of remaining length
-			CheckLenghtBuffer := TRUE;//let this, if just one ore two bytes of publish packet was recived
+		IF IdxIn + 1 &gt; COM.R_BUF.SIZE THEN//1 for min size of remaining length
+			NeedBufferMove := TRUE;//maybe we at the end of the buffer, so move...
 		ELSE
 			//size big enough to test remaining lengt, inside testing of bytes....
 			RemainingLength := GetRemainingLength(ADR(COM.R_BUF.BUFFER), pos := IdxIn, BuffSize:= COM.R_BUF.SIZE);
 			//if paket to small for buffer, disconnect, remaining length is smaller then whole packet size
-			IF RemainingLength.RemainingLength - 8 &gt; MaxPublishPacketSize THEN
+			IF (RemainingLength.RemainingLength - 8 &gt; MaxPublishPacketSize) AND NOT RemainingLength.BuffToSmall THEN
 				{info 'make this to a parameter to chose disconnect or discharge'}
 				DoDisconnect := TRUE;
 				CheckLenghtBuffer := TRUE;
 			ELSE 
-				
-				IF (IdxIn + RemainingLength.RemainingLength &gt;= COM.R_BUF.SIZE) THEN
-				//
-				//move splited publish packet to buffer
-					//IF SplitPublishLock THEN
-						//move publish packet in network recive buffer
-					NeedBufferMove := TRUE;			
-					(*ELSE
-						//buffer is locked(packet is published to application) so move splited data in recive buffer for next cycle...
+				IF RemainingLength.BuffToSmall THEN
+					NeedBufferMove := TRUE;
+				ELSE
+					IF RemainingLength.RemainingLength &lt; TRANSMIT_BUFFER_SIZE THEN 
+						//here the packet fits into the network buffer
+						IF (IdxIn + RemainingLength.RemainingLength &gt;= COM.R_BUF.SIZE) AND NOT IdxIn = 0 THEN
+							NeedBufferMove := TRUE;
+						END_IF
+					END_IF	
+					IF RemainingLength.RemainingLength &gt; TRANSMIT_BUFFER_SIZE THEN
+						//packet needs to be moved into big recive buffer
 						SplitPublishLength := RemainingLength.RemainingLength + RemainingLength.SizeRemainingLength + 1;//one byte for fixed packed header
-						SplitPublishBufferSize := COM.R_BUF.SIZE - IdxIn;;//new splited publish
+						SplitPublishBufferSize := COM.R_BUF.SIZE - IdxIn;//new splited publish
 						MEM.MemMove(pSource:= ADR(COM.R_BUF.BUFFER[IdxIn]), pDestination:= SplitPublishBuffer, uiNumberOfBytes:= UDINT_TO_UINT(SplitPublishBufferSize));
 						//clear in Buffer
 						COM.R_BUF.SIZE := 0;
+						COM.MQTT_RCV_STATE := BYTE#0;//recive zurücksetzten	
 						PublishSplited := TRUE;
-						CheckLenghtBuffer := TRUE;
-					END_IF*)
-				END_IF 				
+						CheckLenghtBuffer := TRUE; 	
+					END_IF
+				END_IF
 			END_IF
 		END_IF
 	MESSAGETYPE.PUBREL:
@@ -12159,7 +12162,7 @@ tNewRun(in := step = 40,PT:= repeatTime);</xhtml>
                 <string />
               </type>
               <initialValue>
-                <simpleValue value="'test.mosquitto.org'" />
+                <simpleValue value="'test.mosquitto.org:1883'" />
               </initialValue>
             </variable>
           </inputVars>
@@ -12168,6 +12171,9 @@ tNewRun(in := step = 40,PT:= repeatTime);</xhtml>
               <type>
                 <string length="8000" />
               </type>
+              <initialValue>
+                <simpleValue value="''" />
+              </initialValue>
             </variable>
             <variable name="longTopic">
               <type>
@@ -12258,9 +12264,19 @@ tNewRun(in := step = 40,PT:= repeatTime);</xhtml>
                 <derived name="MQTTPublish" />
               </type>
             </variable>
+            <variable name="send">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
             <variable name="SUB1">
               <type>
                 <derived name="MQTTSubscribe" />
+              </type>
+            </variable>
+            <variable name="subscribe">
+              <type>
+                <BOOL />
               </type>
             </variable>
             <variable name="callback">
@@ -12273,6 +12289,21 @@ tNewRun(in := step = 40,PT:= repeatTime);</xhtml>
                 <BOOL />
               </type>
             </variable>
+            <variable name="nextRung">
+              <type>
+                <derived name="ton" />
+              </type>
+            </variable>
+            <variable name="lenPayload">
+              <type>
+                <UINT />
+              </type>
+            </variable>
+            <variable name="lenTopic">
+              <type>
+                <UINT />
+              </type>
+            </variable>
           </localVars>
         </interface>
         <body>
@@ -12280,6 +12311,8 @@ tNewRun(in := step = 40,PT:= repeatTime);</xhtml>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">IF NOT init THEN
 	init := TRUE;
 	
+	SUB1.SetMqttInOut(MQTT_IN_OUT := ADR(MQTT_IN_OUT));
+	pup.SetMqttInOut(MQTT_IN_OUT := ADR(MQTT_IN_OUT));
 	ComConfig.MaxPayloadSize := 20000;
 	ComConfig.MaxTopicLevels := 10;
 	ComConfig.MaxTopicElementSize := 10000;
@@ -12291,33 +12324,85 @@ tNewRun(in := step = 40,PT:= repeatTime);</xhtml>
 	pt2 := ADR(longTopic);
 	pt2 := pt2 + 10;
 	FOR i1 := 0 TO 8000 / countAsciis - 1 DO
-		FOR i2 := 0 TO countAsciis DO
+		FOR i2 := 0 TO countAsciis - 1 DO
 			pt1^ := TO_BYTE(i2 + 16#30); //16#30 --&gt; ASCII zero
 			pt2^ := TO_BYTE(i2 + 16#30); //16#30 --&gt; ASCII zero
 			pt1 := pt1 + 1;
 			pt2 := pt2 + 1;
 		END_FOR
 	END_FOR
-	
+	//need termination...
+	pt1^:= 0;
+	pt2^:= 0;
 	callback.Init(payload:= ADR(longPayloadRecive), topic:= ADR(longTopicRecive));
 END_IF
 
+SUB1(
+	Subscribe:= subscribe, 
+	Topic:= ADR('TestTopic/#'), 
+	QoSSubscribe:= QoS.ExactlyOnce, 
+	ExpectingString:= TRUE, 
+	Callback:= callback);
+
+	
+	pup(
+	Topic:= ADR(longTopic), 
+	PayloadString:= ADR(longPayload), 
+	PublishAsString:= TRUE, 
+	QoSIn:= Qos.ExactlyOnce, 
+	MRetain:= FALSE, 
+	send:= send);
 
 MQTT(
 	MQTT_INFO:= MQTT_INFO, 
 	MQTT_IN_OUT:= MQTT_IN_OUT, 
 	ENABLE:= connect, 
 	URL:= broker, 
-	TIMEOUT:= , 
-	TLS:= , 
-	ERROR_C=&gt; , 
-	ERROR_T=&gt; );
+	TIMEOUT:= T#5S);
 
 
 CASE step OF 
 	0://begin
 		//connect
-END_CASE</xhtml>
+		connect := TRUE;
+		step := 10;
+	10://wait connected
+		IF MQTT_INFO.MQTT_CONNECTED THEN
+			//subscribe
+			subscribe := TRUE;		
+			step := 20;
+		END_IF
+	20://wait subscribed
+		IF SUB1.SubscribeDone THEN
+			//send packet and check recive
+			send := TRUE;
+			step := 30;
+		END_IF
+		
+	30:
+		//reset send
+		send := FALSE;
+		step := 40;
+	40:
+		lenPayload:= CommonTypesAndFunctions.len(ADR(longPayloadRecive));
+		lenTopic:= CommonTypesAndFunctions.len(ADR(longTopicRecive));
+		//check if payload and topic recived....
+		IF CommonTypesAndFunctions.StrEquals(str1:= ADR(longPayload), str2:= ADR(longPayloadRecive)) AND
+			CommonTypesAndFunctions.StrEquals(str1:= ADR(longTopic), str2:= ADR(longTopicRecive)) THEN
+			//deled recived strings
+			longTopicRecive := '';
+			longPayloadRecive := '';
+			//go wait repeat
+			step := 50;
+		END_IF
+		
+	50:
+		IF nextRung.Q THEN
+			step := 0;
+		END_IF
+END_CASE
+
+nextRung(IN:= step = 50, PT:= T#5S);</xhtml>
           </ST>
         </body>
         <addData>
@@ -14130,8 +14215,51 @@ you can implement it in you one FBs and pass this to the CallbackStock or subscr
         <addData />
       </Interface>
     </data>
+    <data name="http://www.3s-software.com/plcopenxml/libraries" handleUnknown="implementation">
+      <Libraries>
+        <Library Name="#CAA Types" Namespace="CAA" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" DefaultResolution="CAA Types Extern, * (CAA Technical Workgroup)" />
+        <Library Name="#CAA Behaviour Model" Namespace="CBM" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" DefaultResolution="CAA Behaviour Model, * (CAA Technical Workgroup)" />
+        <Library Name="#CAA FB Factory" Namespace="FBF" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" DefaultResolution="CAA FB Factory, * (CAA Technical Workgroup)" />
+        <Library Name="OSCAT NETWORK, 1.30 (OSCAT)" Namespace="OSCAT_NETWORK" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
+        <Library Name="SysTypes Interfaces, * (System)" Namespace="SysTypes" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
+        <Library Name="#Standard" Namespace="Standard" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" DefaultResolution="Standard, * (System)" />
+        <Library Name="SysProcess, 3.5.7.0 (System)" Namespace="SysProcess" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
+        <Library Name="SysSem, 3.5.5.0 (System)" Namespace="SysSem" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
+        <Library Name="BASIC, 3.3.3.0 (OSCAT)" Namespace="OSCAT_BASIC" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
+        <Library Name="CAA Memory, 3.5.12.0 (CAA Technical Workgroup)" Namespace="MEM" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
+        <Library Name="#IecSfc" Namespace="IecSfc" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="IecSfc, 3.4.2.0 (System)" />
+        <Library Name="#Analyzation" Namespace="Analyzation" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="Analyzation, 3.5.2.0 (System)">
+          <Parameters>
+            <Parameter Name="TABLE_UPPER_BOUND" Value="15" />
+            <Parameter Name="STRING_LENGTH_EXP" Value="255" />
+            <Parameter Name="STRING_LENGTH_ADDRESS" Value="20" />
+            <Parameter Name="STRING_LENGTH_COMMENT" Value="255" />
+            <Parameter Name="STRING_LENGTH_OUTSTRING" Value="255" />
+            <Parameter Name="TABLE_SHOW_VALID_ITEMS" Value="FALSE" />
+          </Parameters>
+        </Library>
+        <Library Name="Time and Date, 3.5.7.0 (3S - Smart Software Solutions GmbH)" Namespace="Time_and_Date" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
+        <Library Name="#CommonTypsFunctions" Namespace="CommonTypesAndFunctions" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" DefaultResolution="Common Helper for development, * (Stefan Dreyer)" />
+        <Library Name="SysTarget, 3.5.5.0 (System)" Namespace="SysTarget" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
+        <Library Name="Plc Services, 3.5.8.0 (System)" Namespace="Plc_Services" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
+        <Library Name="MemoryUtils, 3.5.13.0 (3S - Smart Software Solutions GmbH)" Namespace="MEMUtils" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
+        <Library Name="CAA File, 3.5.13.0 (CAA Technical Workgroup)" Namespace="FILE" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
+        <Library Name="CmpCrypto, 3.5.11.0 (System)" Namespace="CmpCrypto" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
+        <Library Name="3S Storage, 3.5.13.0 (3S - Smart Software Solutions GmbH)" Namespace="STI" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
+        <Library Name="StringUtils, 3.5.14.0 (System)" Namespace="Stu" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
+        <Library Name="Element Collections, 3.5.14.0 (3S - Smart Software Solutions GmbH)" Namespace="COL" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
+        <Library Name="CmpErrors2 Interfaces, 3.5.12.0 (System)" Namespace="CmpErrors" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
+        <Library Name="SysMem, 3.5.12.0 (System)" Namespace="SysMem" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>8c1463b5-02f2-427d-bd06-9e39d42fcbff</ObjectId>
+          </data>
+        </addData>
+      </Libraries>
+    </data>
     <data name="http://www.3s-software.com/plcopenxml/projectstructure" handleUnknown="discard">
       <ProjectStructure>
+        <Object Name="Bibliotheksverwalter" ObjectId="8c1463b5-02f2-427d-bd06-9e39d42fcbff" />
         <Folder Name="MQTT">
           <Folder Name="Function Blocks">
             <Object Name="HANDLE_MQTT" ObjectId="de40940d-72fb-4911-9e82-a78a5e144b68">

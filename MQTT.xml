@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14" creationDateTime="2019-03-14T05:20:38.8666677" />
-  <contentHeader name="MQTT" version="1.0.0.0" modificationDateTime="2019-02-27T05:34:40.4236441" organization="Stefan Dreyer" author="Stefan Dreyer">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14" creationDateTime="2019-03-16T17:19:26.230158" />
+  <contentHeader name="MQTT" version="1.0.0.0" modificationDateTime="2019-03-16T17:17:54.8688866" organization="Stefan Dreyer" author="Stefan Dreyer">
     <Comment>MQTT Stuff
 Using some cool stuff of OSCAT libs.
 see oscat.de
@@ -3009,60 +3009,6 @@ MyReturnHit := returnHit;</xhtml>
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="PublishRecived" ObjectId="5dac2322-5ac7-4538-93c4-0b74db522b57">
-              <interface>
-                <returnType>
-                  <BOOL />
-                </returnType>
-                <inputVars>
-                  <variable name="Data">
-                    <type>
-                      <derived name="CALLBACK_DATA" />
-                    </type>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
-                    </documentation>
-                  </variable>
-                </inputVars>
-                <localVars>
-                  <variable name="StrPt">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                </localVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF splitTopic THEN
-	//now search the right topic 
-	IF CommonTypesAndFunctions.StrEquals(str1:= Data.TopicOutSplit^.Topics[Data.TopicOutSplit^.ValidFields - 1], str2:= MyCompString) THEN
-		CommonTypesAndFunctions.GetValueFromStringPt(TypeOfValue:= MyValueTyp ,Target:= TargetPointer, str:= DATA.PayloadString^);
-		PublishRecived := MyReturnHit;
-	END_IF
-	
-END_IF
-IF splitPayload THEN
-	
-	IF CommonTypesAndFunctions.StrEqualsAtStartWithDelimiter(str1:= MyCompString, str2:= Data.PayloadString, delimiter:= SplitPayloadChar) THEN
-		//now search split char
-		StrPt := Data.PayloadString;
-		StrPt := StrPt + TO_DWORD(CommonTypesAndFunctions.find(str1 := StrPt, str2:= ADR(SplitPayloadChar))) + 1;
-		CommonTypesAndFunctions.GetValueFromStringPt(TypeOfValue:= MyValueTyp ,Target:= TargetPointer, str:= StrPt^);
-		PublishRecived := MyReturnHit;
-	END_IF
-	
-END_IF</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
             <Method name="initAsFindPayload" ObjectId="e6ddf348-ea05-4bcf-81e6-0069705572a2">
               <interface>
                 <returnType>
@@ -3184,6 +3130,60 @@ MyReturnHit := returnHit;</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">TargetPointer := CommonTypesAndFunctions.MakeAllTypesPointer(fromWho:= adr(MQTTRecived), myType:= MyValueTyp);</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="PublishRecived" ObjectId="5dac2322-5ac7-4538-93c4-0b74db522b57">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="Data">
+                    <type>
+                      <derived name="CALLBACK_DATA" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="StrPt">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF splitTopic THEN
+	//now search the right topic 
+	IF CommonTypesAndFunctions.StrEquals(str1:= Data.TopicOutSplit^.Topics[Data.TopicOutSplit^.ValidFields - 1], str2:= MyCompString) THEN
+		CommonTypesAndFunctions.GetValueFromStringPt(TypeOfValue:= MyValueTyp ,Target:= TargetPointer, str:= DATA.PayloadString^);
+		PublishRecived := MyReturnHit;
+	END_IF
+	
+END_IF
+IF splitPayload THEN
+	
+	IF CommonTypesAndFunctions.StrEqualsAtStartWithDelimiter(str1:= MyCompString, str2:= Data.PayloadString, delimiter:= SplitPayloadChar) THEN
+		//now search split char
+		StrPt := Data.PayloadString;
+		StrPt := StrPt + TO_DWORD(CommonTypesAndFunctions.find(str1 := StrPt, str2:= ADR(SplitPayloadChar))) + 1;
+		CommonTypesAndFunctions.GetValueFromStringPt(TypeOfValue:= MyValueTyp ,Target:= TargetPointer, str:= StrPt^);
+		PublishRecived := MyReturnHit;
+	END_IF
+	
+END_IF</xhtml>
                 </ST>
               </body>
               <addData />
@@ -3473,9 +3473,14 @@ SplitCharPayload := SplitChar;</xhtml>
                     <type>
                       <pointer>
                         <baseType>
-                          <string />
+                          <string length="255" />
                         </baseType>
                       </pointer>
+                    </type>
+                  </variable>
+                  <variable name="SplitPos">
+                    <type>
+                      <DINT />
                     </type>
                   </variable>
                 </localVars>
@@ -3486,7 +3491,9 @@ SplitCharPayload := SplitChar;</xhtml>
 IF ListSplitTopic THEN
 	FOR i := 0 TO MyLengthOfData - 1 DO
 		IF CommonTypesAndFunctions.StrEquals(str1:= Data.TopicOutSplit^.Topics[Data.TopicOutSplit^.ValidFields - 1], str2:= MyListData[i].SubTopic) THEN
-			MyListData[i].Target^ := Data.PayloadString^;
+			//MyListData[i].Target^ := Data.PayloadString^;
+			MEM.MemMove(pSource:= Data.PayloadString, pDestination:= MyListData[i].Target, uiNumberOfBytes:= TO_UINT(data.PayloadSize + 1));
+			PublishRecived := TRUE;
 		END_IF
 	END_FOR
 END_IF
@@ -3496,8 +3503,11 @@ IF ListSplitPayload THEN
 		IF CommonTypesAndFunctions.StrEqualsAtStartWithDelimiter(str1:= MyListData[i].SubTopic, str2:= Data.PayloadString, delimiter:= SplitCharPayload) THEN
 			//now search split char
 			StrPt := Data.PayloadString;
-			StrPt := StrPt + TO_DWORD(CommonTypesAndFunctions.find(str1 := StrPt, str2:= ADR(SplitCharPayload))) + 1;
-			MyListData[i].Target^ := StrPt^;
+			SplitPos := CommonTypesAndFunctions.find(str1 := StrPt, str2:= ADR(SplitCharPayload));
+			StrPt := StrPt + TO_DWORD(SplitPos) + 1;
+			//MyListData[i].Target^ := StrPt^;
+			MEM.MemMove(pSource:= Data.PayloadString, pDestination:= MyListData[i].Target, uiNumberOfBytes:= TO_UINT(data.PayloadSize + 1 - TO_UDINT(SplitPos)) );
+			PublishRecived := TRUE;
 		END_IF
 	END_FOR
 	
@@ -6094,7 +6104,6 @@ IF COM.R_BUF.SIZE &gt; 0 THEN
 			MESSAGETYPE.PUBLISH:
 			//new way, move every publish to recive buffer, and then pars it.
 			//outgoing payload pointer is then set to start of payload in the buffer....
-				//don't use check buffer here, make all in Parse Publish....
 				BufferMoveDone := CheckLenghtBuffer(IdxIn:= idx);
 				IF NOT BufferMoveDone THEN
 					
@@ -6312,8 +6321,8 @@ IF COM.R_BUF.SIZE &gt; 0 THEN
 	END_REPEAT
 	IF NOT BufferMoveDone THEN
 		COM.R_BUF.SIZE := 0;
-		COM.MQTT_RCV_STATE := BYTE#0;//recive zurücksetzten	
 	END_IF
+	COM.MQTT_RCV_STATE := BYTE#0;//recive zurücksetzten
 	
 END_IF</xhtml>
                 </ST>
@@ -6693,9 +6702,7 @@ END_IF</xhtml>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">CheckLenghtBuffer := FALSE;
-
-RecivePakteType := COM.R_BUF.BUFFER[IdxIn] AND 16#F0;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">RecivePakteType := COM.R_BUF.BUFFER[IdxIn] AND 16#F0;
 
 NeedBufferMove := FALSE;
 
@@ -6708,7 +6715,7 @@ CASE RecivePakteType OF
 			//size big enough to test remaining lengt, inside testing of bytes....
 			RemainingLength := GetRemainingLength(ADR(COM.R_BUF.BUFFER), pos := IdxIn, BuffSize:= COM.R_BUF.SIZE);
 			//if paket to small for buffer, disconnect, remaining length is smaller then whole packet size
-			IF (RemainingLength.RemainingLength - 8 &gt; MaxPublishPacketSize) AND NOT RemainingLength.BuffToSmall THEN
+			IF ((TO_LINT(RemainingLength.RemainingLength) - 8 &gt; MaxPublishPacketSize) OR RemainingLength.RemainingLength = 0) AND NOT RemainingLength.BuffToSmall THEN
 				{info 'make this to a parameter to chose disconnect or discharge'}
 				DoDisconnect := TRUE;
 				CheckLenghtBuffer := TRUE;
@@ -6718,7 +6725,7 @@ CASE RecivePakteType OF
 				ELSE
 					IF RemainingLength.RemainingLength &lt; TRANSMIT_BUFFER_SIZE THEN 
 						//here the packet fits into the network buffer
-						IF (IdxIn + RemainingLength.RemainingLength &gt;= COM.R_BUF.SIZE) AND NOT IdxIn = 0 THEN
+						IF (RemainingLength.IndexAfterRemainingLength + RemainingLength.RemainingLength) &gt; COM.R_BUF.SIZE THEN
 							NeedBufferMove := TRUE;
 						END_IF
 					END_IF	
@@ -6763,14 +6770,16 @@ CASE RecivePakteType OF
 
 END_CASE
 
-IF NeedBufferMove THEN
+IF NeedBufferMove AND NOT ( IdxIn = 0)THEN
 	MoveBufferForSplitPaket(idx:= IdxIn);
 	InBufferMoved := 1;
-	CheckLenghtBuffer := TRUE;
+	
 ELSE
 	InBufferMoved := 0;
 	CountWaitForRestOfPaket := 0;
 END_IF
+
+CheckLenghtBuffer := NeedBufferMove;
 
 IF InBufferMoved = 1 THEN
 	CountWaitForRestOfPaket := CountWaitForRestOfPaket + 1;
@@ -9148,7 +9157,8 @@ Publish(
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">//need to call publish here because of FB nums
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">{info 'need to check string length!'}
+//need to call publish here because of FB nums
 publish(
 	Topic:= Topic, 
 	PayloadString:= ADR(Payload), 
@@ -12411,6 +12421,185 @@ nextRung(IN:= step = 50, PT:= T#5S);</xhtml>
           </data>
         </addData>
       </pou>
+      <pou name="TestLongStringList" pouType="functionBlock">
+        <interface>
+          <inputVars>
+            <variable name="client">
+              <type>
+                <string />
+              </type>
+              <initialValue>
+                <simpleValue value="'test.mosquitto.org:1883'" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">test.mosquitto.org</xhtml>
+              </documentation>
+            </variable>
+          </inputVars>
+          <localVars>
+            <variable name="MQTTClient">
+              <type>
+                <derived name="HANDLE_MQTT" />
+              </type>
+            </variable>
+            <variable name="MQTT_IN_OUT">
+              <type>
+                <derived name="MQTT_IN_OUT" />
+              </type>
+            </variable>
+            <variable name="MQTTInfo">
+              <type>
+                <derived name="MQTT_INFO" />
+              </type>
+            </variable>
+            <variable name="publish">
+              <type>
+                <derived name="MQTTPublish" />
+              </type>
+            </variable>
+            <variable name="subscribe">
+              <type>
+                <derived name="MQTTSubscribe" />
+              </type>
+            </variable>
+            <variable name="ReciveSubscribeTopic">
+              <type>
+                <string length="255" />
+              </type>
+            </variable>
+            <variable name="ReciveSubscribePayloadLong">
+              <type>
+                <string length="500" />
+              </type>
+            </variable>
+            <variable name="State">
+              <type>
+                <derived name="MQTTState" />
+              </type>
+            </variable>
+            <variable name="init">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="varSend">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="timerSend">
+              <type>
+                <derived name="ton" />
+              </type>
+            </variable>
+            <variable name="t1">
+              <type>
+                <derived name="ton" />
+              </type>
+            </variable>
+            <variable name="t2">
+              <type>
+                <derived name="ton" />
+              </type>
+            </variable>
+            <variable name="Payload">
+              <type>
+                <string />
+              </type>
+            </variable>
+            <variable name="StringCallback">
+              <type>
+                <derived name="ListStringCallback" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">the method PublishReceved() is call when an publsih packet form the broker is recived.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="CallBackTargets">
+              <type>
+                <array>
+                  <dimension lower="0" upper="1" />
+                  <baseType>
+                    <derived name="LIST_STRING_CALLBACK_DATA" />
+                  </baseType>
+                </array>
+              </type>
+              <initialValue>
+                <arrayValue>
+                  <value>
+                    <structValue>
+                      <value member="Target">
+                        <simpleValue value="ADR(ReciveSubscribePayloadLong)" />
+                      </value>
+                      <value member="SubTopic">
+                        <simpleValue value="ADR('Long')" />
+                      </value>
+                    </structValue>
+                  </value>
+                </arrayValue>
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">the array contains the targets and sub topics for recive</xhtml>
+              </documentation>
+            </variable>
+            <variable name="len1">
+              <type>
+                <UINT />
+              </type>
+            </variable>
+          </localVars>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">//here init is done
+IF NOT init THEN
+	init := TRUE;
+	MQTT_IN_OUT.ClientID := CONCAT('CodesysMqtt',TO_STRING(TICKS.GetTick(xDummy:= TRUE)));
+	publish.SetMqttInOut(MQTT_IN_OUT:= ADR(MQTT_IN_OUT));
+	subscribe.SetMqttInOut(MQTT_IN_OUT:= ADR(MQTT_IN_OUT));
+	//init state FB, so you only have to call state();without parameters... 
+	State.Init(
+	State:= ADR(t1.Q), 
+	Topic:= ADR('CODESYS-MQTT-BY-SD/Long'), 
+	StateName:= ADR(''), 
+	StateValueOn:= ADR('LOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOg:On'), 
+	StateValueOff:= ADR('LOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOg:Off'), 
+	MQTT_IN_OUT:= ADR(MQTT_IN_OUT), 
+	QoS:= QoS.ExactlyOnce, 
+	RetainMqtt:= TRUE);
+	StringCallback.InitAsSplitTopic(ListData := ADR(CallBackTargets), LengthOfData:= 1);
+
+END_IF
+//timer for repeating packets
+t1(IN:= NOT t2.Q, PT:= T#1S, );
+t2(IN:= t1.Q, PT:= T#1S);
+//call of MQTT client
+MQTTClient(
+	MQTT_INFO:= MQTTInfo, 
+	MQTT_IN_OUT:= MQTT_IN_OUT, 
+	ENABLE:= TRUE, 
+	URL:= client, 
+	TIMEOUT:= T#5S, 
+	TLS:= FALSE);
+//Subscribe to topic
+subscribe(
+	Subscribe:= TRUE, 
+	Topic:= ADR('CODESYS-MQTT-BY-SD/#'), 
+	QoSSubscribe:= QoS.ExactlyOnce, 
+	ExpectingString:= TRUE,
+	Callback:= StringCallback);
+len1 := CommonTypesAndFunctions.len(str:= ADR(ReciveSubscribePayloadLong));
+
+//call of state FB
+State();</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>ba26506c-e830-4dfd-b732-7d24065c29cf</ObjectId>
+          </data>
+        </addData>
+      </pou>
       <pou name="TestMqtt" pouType="functionBlock">
         <interface>
           <inputVars>
@@ -13587,6 +13776,70 @@ MQTT(
           </data>
         </addData>
       </pou>
+      <pou name="TestStringPointer" pouType="functionBlock">
+        <interface>
+          <localVars>
+            <variable name="SFrom">
+              <type>
+                <string length="2000" />
+              </type>
+              <initialValue>
+                <simpleValue value="'ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ'" />
+              </initialValue>
+            </variable>
+            <variable name="STo">
+              <type>
+                <string length="1000" />
+              </type>
+              <initialValue>
+                <simpleValue value="''" />
+              </initialValue>
+            </variable>
+            <variable name="p1">
+              <type>
+                <pointer>
+                  <baseType>
+                    <string length="2000" />
+                  </baseType>
+                </pointer>
+              </type>
+            </variable>
+            <variable name="p2">
+              <type>
+                <pointer>
+                  <baseType>
+                    <string length="2000" />
+                  </baseType>
+                </pointer>
+              </type>
+            </variable>
+            <variable name="l1">
+              <type>
+                <UINT />
+              </type>
+            </variable>
+            <variable name="l2">
+              <type>
+                <UINT />
+              </type>
+            </variable>
+          </localVars>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">l1 := CommonTypesAndFunctions.len(str:= ADR(SFrom));
+l2 := CommonTypesAndFunctions.len(str:= ADR(STo));
+p1:= ADR(SFrom);
+p2:= ADR(STo);
+p2^:= p1^;</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>3b7f3b24-7fb1-4e89-9afb-39c5a11dd2c3</ObjectId>
+          </data>
+        </addData>
+      </pou>
       <pou name="TestSubscribeOld" pouType="functionBlock">
         <interface>
           <localVars>
@@ -14347,10 +14600,10 @@ you can implement it in you one FBs and pass this to the CallbackStock or subscr
                   <Object Name="FB_Exit" ObjectId="5fdc8552-ab1f-4d80-a6dd-b946a8ffbea6" />
                 </Object>
                 <Object Name="ReciveValue" ObjectId="e79e061e-307d-4296-993d-9a352fb8e8d6">
-                  <Object Name="PublishRecived" ObjectId="5dac2322-5ac7-4538-93c4-0b74db522b57" />
                   <Object Name="initAsFindPayload" ObjectId="e6ddf348-ea05-4bcf-81e6-0069705572a2" />
                   <Object Name="initAsFindTopic" ObjectId="6c7387cb-4893-4974-b840-7e19d60c9699" />
                   <Object Name="makePointer" ObjectId="473b6f42-69a5-47ab-854c-26478a68a4fc" />
+                  <Object Name="PublishRecived" ObjectId="5dac2322-5ac7-4538-93c4-0b74db522b57" />
                 </Object>
                 <Object Name="ReciveString" ObjectId="1969c053-827c-4deb-a980-a43c9464a8f0">
                   <Object Name="PublishRecived" ObjectId="8f6a5d94-9a77-4546-aa4e-4be60b6f742a" />
@@ -14428,6 +14681,8 @@ you can implement it in you one FBs and pass this to the CallbackStock or subscr
               <Object Name="exampleForFbs" ObjectId="65ff7880-8a04-45c8-97d1-778b8fbd262b" />
             </Folder>
             <Object Name="TestLongPublish" ObjectId="b18c8267-7251-461e-ae79-29a6c51f3a8f" />
+            <Object Name="TestLongStringList" ObjectId="ba26506c-e830-4dfd-b732-7d24065c29cf" />
+            <Object Name="TestStringPointer" ObjectId="3b7f3b24-7fb1-4e89-9afb-39c5a11dd2c3" />
           </Folder>
           <Object Name="GVL_MQTT" ObjectId="976dc25f-9617-40b0-bef6-a6cbfe28769f" />
           <Folder Name="Docs">

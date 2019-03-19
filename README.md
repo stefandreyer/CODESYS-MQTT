@@ -1,6 +1,12 @@
 # CODESYS-MQTT
 MQTT client for CODESYS
 
+# NEW Example!
+- please have a look in the GreatExampleOfAdvantages!
+- there look into MyProperty programm
+- it shows you how to never ever again tipp any topic in you program!
+- have fun!!!
+
 # NEWS
 - 64bit support, but you need to enable dynamic memory allocation
 - much faster testHighReciveSplitPayload() works with nearly 600 sends, recives per second!

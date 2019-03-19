@@ -3,6 +3,7 @@ MQTT client for CODESYS
 
 # NEW Example!
 - please have a look in the GreatExampleOfAdvantages!
+- it runs out of the box with test.mosquitto.org
 - there look into MyProperty programm
 - it shows you how to never ever again tipp any topic in you program!
 - have fun!!!

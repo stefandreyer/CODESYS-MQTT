@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14" creationDateTime="2019-03-16T17:19:26.230158" />
-  <contentHeader name="MQTT" version="1.0.0.0" modificationDateTime="2019-03-16T17:17:54.8688866" organization="Stefan Dreyer" author="Stefan Dreyer">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14" creationDateTime="2019-03-28T05:12:04.223898" />
+  <contentHeader name="MQTT" version="1.0.0.0" modificationDateTime="2019-03-27T13:33:33.4590434" organization="Stefan Dreyer" author="Stefan Dreyer">
     <Comment>MQTT Stuff
 Using some cool stuff of OSCAT libs.
 see oscat.de
@@ -284,12 +284,13 @@ more to describe
               <type>
                 <pointer>
                   <baseType>
-                    <string />
+                    <string length="255" />
                   </baseType>
                 </pointer>
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">the Payload String</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">the Payload String,
+	be aware, this pointer will only copy 255 bytes. i more needed use memmove!</xhtml>
               </documentation>
             </variable>
             <variable name="Payload">
@@ -316,12 +317,12 @@ more to describe
               <type>
                 <pointer>
                   <baseType>
-                    <string />
+                    <string length="255" />
                   </baseType>
                 </pointer>
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">here you get the compleete recived topic string</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">here you get the compleete recived topic string, maybe bigger then 255 byte!</xhtml>
               </documentation>
             </variable>
             <variable name="TopicOutSplit">
@@ -967,6 +968,14 @@ set to true if you want to use TLS</xhtml>
 	</xhtml>
               </documentation>
             </variable>
+            <variable name="BuildWillTopicAndMessage">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+            </variable>
             <variable name="WillTopicBase">
               <type>
                 <string length="255" />
@@ -977,7 +986,7 @@ set to true if you want to use TLS</xhtml>
             </variable>
             <variable name="ClientWillTopic">
               <type>
-                <string length="30" />
+                <string length="255" />
               </type>
               <initialValue>
                 <simpleValue value="'DEAD'" />
@@ -2651,7 +2660,7 @@ END_WHILE
 END_IF
 aktElement := ADR(first);
 
-WHILE NOT nextElement^.last DO
+WHILE NOT aktElement^.last DO
 	nextElement := aktElement^.next;
 	__DELETE(aktElement);
 	aktElement := nextElement; 
@@ -2785,7 +2794,7 @@ __DELETE(aktElement);</xhtml>
                     <type>
                       <pointer>
                         <baseType>
-                          <string />
+                          <string length="255" />
                         </baseType>
                       </pointer>
                     </type>
@@ -2800,7 +2809,8 @@ __DELETE(aktElement);</xhtml>
 IF splitTopic THEN
 	
 	IF CommonTypesAndFunctions.StrEquals(str1:= Data.TopicOutSplit^.Topics[Data.TopicOutSplit^.ValidFields - 1], str2:= MyCompString) THEN
-		MQTTRecived := Data.PayloadString^;
+		StrPt := Data.PayloadString;
+		MQTTRecived := StrPt^;
 		PublishRecived := MyReturnHit;
 	END_IF
 
@@ -2965,6 +2975,14 @@ MyReturnHit := returnHit;</xhtml>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml">if set to true we search the instance name in Payload separatet by the split char </xhtml>
               </documentation>
             </variable>
+            <variable name="splitTopicAndPayload">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">fisrt searc topic, then payload...</xhtml>
+              </documentation>
+            </variable>
             <variable name="SplitPayloadChar">
               <type>
                 <BYTE />
@@ -2983,6 +3001,18 @@ MyReturnHit := returnHit;</xhtml>
               </type>
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml">compare with this...</xhtml>
+              </documentation>
+            </variable>
+            <variable name="MyCompStringPayload">
+              <type>
+                <pointer>
+                  <baseType>
+                    <string />
+                  </baseType>
+                </pointer>
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">and this for Payload</xhtml>
               </documentation>
             </variable>
             <variable name="MyReturnHit">
@@ -3008,6 +3038,74 @@ MyReturnHit := returnHit;</xhtml>
           </ST>
         </body>
         <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="PublishRecived" ObjectId="5dac2322-5ac7-4538-93c4-0b74db522b57">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="Data">
+                    <type>
+                      <derived name="CALLBACK_DATA" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="StrPt">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF splitTopic THEN
+	//now search the right topic 
+	IF CommonTypesAndFunctions.StrEquals(str1:= Data.TopicOutSplit^.Topics[Data.TopicOutSplit^.ValidFields - 1], str2:= MyCompString) THEN
+		CommonTypesAndFunctions.GetValueFromStringPt(TypeOfValue:= MyValueTyp ,Target:= TargetPointer, str:= DATA.PayloadString^);
+		PublishRecived := MyReturnHit;
+	END_IF
+	
+END_IF
+IF splitPayload THEN
+	
+	IF CommonTypesAndFunctions.StrEqualsAtStartWithDelimiter(str1:= MyCompString, str2:= Data.PayloadString, delimiter:= SplitPayloadChar) THEN
+		//now search split char
+		StrPt := Data.PayloadString;
+		StrPt := StrPt + TO_DWORD(CommonTypesAndFunctions.find(str1 := StrPt, str2:= ADR(SplitPayloadChar))) + 1;
+		CommonTypesAndFunctions.GetValueFromStringPt(TypeOfValue:= MyValueTyp ,Target:= TargetPointer, str:= StrPt^);
+		PublishRecived := MyReturnHit;
+	END_IF
+	
+END_IF
+
+IF splitTopicAndPayload THEN
+	//now search the right topic 
+	IF CommonTypesAndFunctions.StrEquals(str1:= Data.TopicOut, str2:= MyCompString) THEN
+		IF CommonTypesAndFunctions.StrEqualsAtStartWithDelimiter(str1:= MyCompStringPayload, str2:= Data.PayloadString, delimiter:= SplitPayloadChar) THEN
+			StrPt := Data.PayloadString;
+			StrPt := StrPt + TO_DWORD(CommonTypesAndFunctions.find(str1 := StrPt, str2:= ADR(SplitPayloadChar))) + 1;
+			CommonTypesAndFunctions.GetValueFromStringPt(TypeOfValue:= MyValueTyp ,Target:= TargetPointer, str:= StrPt^);
+			PublishRecived := MyReturnHit;
+		END_IF
+	END_IF
+	
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
             <Method name="initAsFindPayload" ObjectId="e6ddf348-ea05-4bcf-81e6-0069705572a2">
               <interface>
@@ -3105,6 +3203,9 @@ MyReturnHit := returnHit;</xhtml>
                     </documentation>
                   </variable>
                 </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">this will only check the lowest topic level</xhtml>
+                </documentation>
               </interface>
               <body>
                 <ST>
@@ -3136,23 +3237,21 @@ MyReturnHit := returnHit;</xhtml>
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="PublishRecived" ObjectId="5dac2322-5ac7-4538-93c4-0b74db522b57">
+            <Method name="initAsFindTopicAndPayload" ObjectId="eea491e6-688d-4c83-b797-32128c1e8652">
               <interface>
                 <returnType>
                   <BOOL />
                 </returnType>
                 <inputVars>
-                  <variable name="Data">
+                  <variable name="splitChar">
                     <type>
-                      <derived name="CALLBACK_DATA" />
+                      <string />
                     </type>
                     <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">only first char is selected</xhtml>
                     </documentation>
                   </variable>
-                </inputVars>
-                <localVars>
-                  <variable name="StrPt">
+                  <variable name="compStringTopic">
                     <type>
                       <pointer>
                         <baseType>
@@ -3160,30 +3259,78 @@ MyReturnHit := returnHit;</xhtml>
                         </baseType>
                       </pointer>
                     </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">this topic i'm searching</xhtml>
+                    </documentation>
                   </variable>
-                </localVars>
+                  <variable name="compStringPayload">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">this payload i'm searching</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="ValueTyp">
+                    <type>
+                      <derived name="CommonTypesAndFunctions.VAR_TYPES" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">this typ is my recived string</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="returnHit">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">if set to true and hit we will return true, else false...</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">this will check the whole topic!</xhtml>
+                </documentation>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF splitTopic THEN
-	//now search the right topic 
-	IF CommonTypesAndFunctions.StrEquals(str1:= Data.TopicOutSplit^.Topics[Data.TopicOutSplit^.ValidFields - 1], str2:= MyCompString) THEN
-		CommonTypesAndFunctions.GetValueFromStringPt(TypeOfValue:= MyValueTyp ,Target:= TargetPointer, str:= DATA.PayloadString^);
-		PublishRecived := MyReturnHit;
-	END_IF
-	
-END_IF
-IF splitPayload THEN
-	
-	IF CommonTypesAndFunctions.StrEqualsAtStartWithDelimiter(str1:= MyCompString, str2:= Data.PayloadString, delimiter:= SplitPayloadChar) THEN
-		//now search split char
-		StrPt := Data.PayloadString;
-		StrPt := StrPt + TO_DWORD(CommonTypesAndFunctions.find(str1 := StrPt, str2:= ADR(SplitPayloadChar))) + 1;
-		CommonTypesAndFunctions.GetValueFromStringPt(TypeOfValue:= MyValueTyp ,Target:= TargetPointer, str:= StrPt^);
-		PublishRecived := MyReturnHit;
-	END_IF
-	
-END_IF</xhtml>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">
+splitPayload := FALSE;
+splitTopic := FALSE;
+splitTopicAndPayload := TRUE;
+
+SplitPayloadChar := CommonTypesAndFunctions.GetChar(in:= splitChar);
+MyCompString := compStringTopic;
+MyCompStringPayload := compStringPayload;
+MyValueTyp := ValueTyp;
+makePointer();
+MyReturnHit := returnHit;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="SetOutput" ObjectId="3d28e94b-7d99-4f05-aabe-eef9ba1e98a4">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="value">
+                    <type>
+                      <derived name="CommonTypesAndFunctions.ALL_TYPES_UNION" />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">MQTTRecived := value;</xhtml>
                 </ST>
               </body>
               <addData />
@@ -3957,11 +4104,6 @@ MQTTClient(
             <variable name="COM">
               <type>
                 <derived name="MQTT_COM" />
-              </type>
-            </variable>
-            <variable name="TmpString">
-              <type>
-                <string length="255" />
               </type>
             </variable>
             <variable name="TimeoutConnection">
@@ -4855,13 +4997,18 @@ CASE step OF
 			COM.TLS_CONFIG := MQTT_IN_OUT.TLS_CONFIG;
 			ResetPingTime();
 			//build will topic
-			{info 'check build will topic'}
-			TmpString := MQTT_IN_OUT.WillTopicBase;
-			TmpString := Standard.CONCAT(STR1:= TmpString, '/');
-			TmpString := Standard.CONCAT(STR1:= TmpString, STR2:= COM.CLIENT_ID);
-			TmpString := Standard.CONCAT(STR1:= TmpString, '/');
-			TmpString := Standard.CONCAT(STR1:= TmpString, MQTT_IN_OUT.ClientWillTopic);
-			COM.CLIENT_WILL_TOPIC := TmpString;
+			//Standard.CONCAT(STR1:= COM.CLIENT_ID, STR2:= Standard.CONCAT(STR1:= '/', STR2:= COM.CLIENT_WILL_TOPIC));
+			IF MQTT_IN_OUT.BuildWillTopicAndMessage THEN
+				COM.CLIENT_WILL_TOPIC := MQTT_IN_OUT.WillTopicBase;
+				COM.CLIENT_WILL_TOPIC := Standard.CONCAT(STR1:= COM.CLIENT_WILL_TOPIC, '/');
+				COM.CLIENT_WILL_TOPIC := Standard.CONCAT(STR1:= COM.CLIENT_WILL_TOPIC, STR2:= COM.CLIENT_ID);
+				COM.CLIENT_WILL_TOPIC := Standard.CONCAT(STR1:= COM.CLIENT_WILL_TOPIC, '/');
+				COM.CLIENT_WILL_TOPIC := Standard.CONCAT(STR1:= COM.CLIENT_WILL_TOPIC, MQTT_IN_OUT.ClientWillTopic);
+				COM.CLIENT_WILL_TOPIC := Standard.CONCAT(STR1:= '/', COM.CLIENT_WILL_TOPIC);
+				COM.CLIENT_WILL_TOPIC := Standard.CONCAT(STR1:= COM.CLIENT_ID, COM.CLIENT_WILL_TOPIC);
+			ELSE
+				COM.CLIENT_WILL_TOPIC := MQTT_IN_OUT.ClientWillTopic;
+			END_IF
 			COM.CLIENT_WILL_MESSAGE_DEAD := MQTT_IN_OUT.ClientWillMessage;
 			COM_CONFIG := MQTT_IN_OUT.COM_CONFIG;
 			FOR i1 := 0 TO MyConstants.QoS_BUFFER_SIZE - 1 DO
@@ -6595,9 +6742,7 @@ IF OutData THEN
 					IF idx + PayloadPosStart + PayloadSize &gt; MyConstants.NETWORK_BUFFER_LONG_SIZE THEN
 						//need to move payload and topic, I'm at the top border of network buffer
 						//should be very rare....
-						//SysMem23.SysMemMove30(pDest:= ADR(BufferIn[TopicPosStart - 2]), pSrc:= ADR(BufferIn[TopicPosStart]), diCount:= TO_DINT(TopicSize));
 						SysMem.SysMemMove(pDest:= ADR(BufferIn[TopicPosStart - 2]), pSrc:= ADR(BufferIn[TopicPosStart]), udiCount:= TO_UDINT(TopicSize));
-						//SysMem23.SysMemMove30(pDest:= ADR(BufferIn[PayloadPosStart - 1]), pSrc:= ADR(BufferIn[PayloadPosStart]), diCount:= TO_DINT(PayloadSize));
 						SysMem.SysMemMove(pDest:= ADR(BufferIn[PayloadPosStart - 1]), pSrc:= ADR(BufferIn[PayloadPosStart]), udiCount:= TO_UDINT(PayloadSize));
 						//change Topic Pointer...
 						TopicPosStart := TopicPosStart - 2;
@@ -8227,13 +8372,6 @@ RTSResult: RTS_IEC_RESULT;</xhtml>
               </documentation>
             </variable>
           </localVars>
-          <tempVars>
-            <variable name="WillTopic">
-              <type>
-                <string length="255" />
-              </type>
-            </variable>
-          </tempVars>
         </interface>
         <body>
           <ST>
@@ -8325,8 +8463,8 @@ CASE step OF
 		//now put in client id 
 		idx1 := InsertStringToBufferAndLength(Str:= ADR(COM.CLIENT_ID), buff:= ADR(COM.S_BUF.BUFFER), pos:= 12(*, size:= OSCAT_NETWORK.Constants.NETWORK_BUFFER_LONG_SIZE*));
 		//now put in will topic
-		WillTopic := Standard.CONCAT(STR1:= COM.CLIENT_ID, STR2:= Standard.CONCAT(STR1:= '/', STR2:= COM.CLIENT_WILL_TOPIC));
-		idx1 := InsertStringToBufferAndLength(Str:= ADR(WillTopic), buff:= ADR(COM.S_BUF.BUFFER), pos:= idx1(*, size:= OSCAT_NETWORK.Constants.NETWORK_BUFFER_LONG_SIZE*));
+		//WillTopic := Standard.CONCAT(STR1:= COM.CLIENT_ID, STR2:= Standard.CONCAT(STR1:= '/', STR2:= COM.CLIENT_WILL_TOPIC));
+		idx1 := InsertStringToBufferAndLength(Str:= ADR(COM.CLIENT_WILL_TOPIC), buff:= ADR(COM.S_BUF.BUFFER), pos:= idx1(*, size:= OSCAT_NETWORK.Constants.NETWORK_BUFFER_LONG_SIZE*));
 		//now put in will message
 		//IF Standard.LEN(STR:= COM.CLIENT_WILL_MESSAGE_DEAD) &gt; 0 THEN
 		idx1 := InsertStringToBufferAndLength(Str:= ADR(COM.CLIENT_WILL_MESSAGE_DEAD), buff:= ADR(COM.S_BUF.BUFFER), pos:= idx1(*, size:= OSCAT_NETWORK.Constants.NETWORK_BUFFER_LONG_SIZE*));
@@ -10737,7 +10875,7 @@ client(
                     <type>
                       <pointer>
                         <baseType>
-                          <string />
+                          <string length="255" />
                         </baseType>
                       </pointer>
                     </type>
@@ -14600,10 +14738,12 @@ you can implement it in you one FBs and pass this to the CallbackStock or subscr
                   <Object Name="FB_Exit" ObjectId="5fdc8552-ab1f-4d80-a6dd-b946a8ffbea6" />
                 </Object>
                 <Object Name="ReciveValue" ObjectId="e79e061e-307d-4296-993d-9a352fb8e8d6">
+                  <Object Name="PublishRecived" ObjectId="5dac2322-5ac7-4538-93c4-0b74db522b57" />
                   <Object Name="initAsFindPayload" ObjectId="e6ddf348-ea05-4bcf-81e6-0069705572a2" />
                   <Object Name="initAsFindTopic" ObjectId="6c7387cb-4893-4974-b840-7e19d60c9699" />
                   <Object Name="makePointer" ObjectId="473b6f42-69a5-47ab-854c-26478a68a4fc" />
-                  <Object Name="PublishRecived" ObjectId="5dac2322-5ac7-4538-93c4-0b74db522b57" />
+                  <Object Name="initAsFindTopicAndPayload" ObjectId="eea491e6-688d-4c83-b797-32128c1e8652" />
+                  <Object Name="SetOutput" ObjectId="3d28e94b-7d99-4f05-aabe-eef9ba1e98a4" />
                 </Object>
                 <Object Name="ReciveString" ObjectId="1969c053-827c-4deb-a980-a43c9464a8f0">
                   <Object Name="PublishRecived" ObjectId="8f6a5d94-9a77-4546-aa4e-4be60b6f742a" />

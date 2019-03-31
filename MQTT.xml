@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14" creationDateTime="2019-03-28T05:12:04.223898" />
-  <contentHeader name="MQTT" version="1.0.0.0" modificationDateTime="2019-03-27T13:33:33.4590434" organization="Stefan Dreyer" author="Stefan Dreyer">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14" creationDateTime="2019-03-31T12:16:00.9343728" />
+  <contentHeader name="MQTT" version="1.0.0.0" modificationDateTime="2019-03-31T12:00:52.3133779" organization="Stefan Dreyer" author="Stefan Dreyer">
     <Comment>MQTT Stuff
 Using some cool stuff of OSCAT libs.
 see oscat.de
@@ -46,6 +46,34 @@ more to describe
   </contentHeader>
   <types>
     <dataTypes>
+      <dataType name="ERRORS">
+        <baseType>
+          <enum>
+            <values>
+              <value name="NOT_VALID" value="0" />
+              <value name="CONNECTION_REFUSED" value="1" />
+              <value name="MAX_PING_REPEATS" value="2" />
+              <value name="RECIVED_PUBISH_TO_BIG_FOR_BUFFER" value="3" />
+              <value name="FULL_PACKET_NOT_RECIVED" value="4" />
+              <value name="RECIVED_PUBLISH_REMAINING_LENGTH_ERROR" value="5" />
+              <value name="NO_MORE_RECIVE_SLOTS_FREE" value="6" />
+              <value name="CONNECTION_ESTABLISHED" value="7" />
+              <value name="TIMEOUT_CONNECTION" value="8" />
+            </values>
+          </enum>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+            <Attributes>
+              <Attribute Name="qualified_only" Value="" />
+              <Attribute Name="strict" Value="" />
+            </Attributes>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>e92c2094-9817-4ed4-9dc8-48cfc52fdd42</ObjectId>
+          </data>
+        </addData>
+      </dataType>
       <dataType name="INSERT_SPLIT_RETURN">
         <baseType>
           <enum>
@@ -1099,6 +1127,37 @@ set to true if you want to use TLS</xhtml>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
             <ObjectId>ae326562-56be-495d-a72e-4a01b53e8ece</ObjectId>
+          </data>
+        </addData>
+      </dataType>
+      <dataType name="ONE_ERROR">
+        <baseType>
+          <struct>
+            <variable name="error">
+              <type>
+                <derived name="ERRORS" />
+              </type>
+            </variable>
+            <variable name="when">
+              <type>
+                <DT />
+              </type>
+            </variable>
+            <variable name="ERROR_C">
+              <type>
+                <DWORD />
+              </type>
+            </variable>
+            <variable name="ERROR_T">
+              <type>
+                <BYTE />
+              </type>
+            </variable>
+          </struct>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>438702c0-b52d-451f-8dd4-20eaa74fc723</ObjectId>
           </data>
         </addData>
       </dataType>
@@ -4590,17 +4649,6 @@ MQTTClient(
               <type>
                 <ULINT />
               </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">PublishReciveBuffer:ARRAY[0..RECIVE_PUBLISH_BUFFER_SIZE]OF BYTE;
-PublishReciveBufferCount:UINT;
-PublishReciveBufferCountMax:UINT;
-PublishReciveTopicLengt:UDINT;
-PublishRecivePayloadLengt:UDINT;
-size of assignment in recive publish buffer
-PublishReciveBufferAssignment: UDINT;
-PublishReciveBufferAssignmentMax: UDINT;
-PublishReciveBufferCountFull:ULINT;</xhtml>
-              </documentation>
             </variable>
             <variable name="CountResetBufferIn">
               <type>
@@ -4626,9 +4674,6 @@ PublishReciveBufferCountFull:ULINT;</xhtml>
               <type>
                 <derived name="InsertSplitTopic" />
               </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">PublishSplitetd: BOOL;</xhtml>
-              </documentation>
             </variable>
             <variable name="InsertSplitPayload">
               <type>
@@ -4758,6 +4803,21 @@ publish paket broken, waiting for more data</xhtml>
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml">callbacks array full</xhtml>
               </documentation>
+            </variable>
+            <variable name="ErrorHistory">
+              <type>
+                <array>
+                  <dimension lower="0" upper="COUNT_ERROR_HISTORY" />
+                  <baseType>
+                    <derived name="ONE_ERROR" />
+                  </baseType>
+                </array>
+              </type>
+            </variable>
+            <variable name="localTdi">
+              <type>
+                <derived name="CommonTypesAndFunctions.TIME_DATE_IMPULS_DATA" />
+              </type>
             </variable>
           </localVars>
           <localVars constant="true">
@@ -4889,6 +4949,14 @@ publish paket broken, waiting for more data</xhtml>
                 <simpleValue value="20" />
               </initialValue>
             </variable>
+            <variable name="COUNT_ERROR_HISTORY">
+              <type>
+                <UINT />
+              </type>
+              <initialValue>
+                <simpleValue value="50" />
+              </initialValue>
+            </variable>
           </localVars>
           <documentation>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">
@@ -4956,7 +5024,7 @@ LastCycleTime := OSCAT_BASIC.T_PLC_MS();
 //get system time and so one
 DT_MQTT(
 	TDI_Data:= MQTT_IN_OUT.TDI);
-	
+localTdi:= MQTT_IN_OUT.TDI ; 
 TimeoutConnection(IN:= step = 10, PT:= T#5S);
 
 IF DebugFile THEN
@@ -5040,8 +5108,10 @@ CASE step OF
 		END_IF;
 	10:	IF MQTT_INFO.MQTT_CONNECTED THEN
 			step := 40;
+			PushError(newError:= ERRORS.CONNECTION_ESTABLISHED);
 		END_IF;
 		IF TimeoutConnection.Q THEN
+			PushError(newError:= ERRORS.TIMEOUT_CONNECTION );
 			step := 0;//reset steps
 			destroy();
 		END_IF
@@ -5103,6 +5173,7 @@ END_CASE;
 
 IF CountRepeatedPingDisconnect &gt; MAX_PING_REPEATS THEN
 	DoDisconnect := TRUE;
+	PushError(newError:= ERRORS.MAX_PING_REPEATS);
 END_IF
 
 
@@ -5120,6 +5191,7 @@ END_IF
 
 IF COM.ERROR_T &gt; BYTE#0 THEN  (* FEHLER *)
 	step := 0;
+	PushError(newError:= ERRORS.CONNECTION_REFUSED);
 END_IF;
 //put status to local clients
 MQTT_IN_OUT.BROKER_CONNECTED := MQTT_INFO.MQTT_CONNECTED;
@@ -6640,6 +6712,7 @@ IF RemainingLength.Error THEN
 	CountLengthErrors := CountLengthErrors;
 	//on standard i MUST diconnect!!!
 	DoDisconnect := TRUE;
+	PushError(newError:= ERRORS.RECIVED_PUBLISH_REMAINING_LENGTH_ERROR);
 	
 	RETURN;
 END_IF
@@ -6688,6 +6761,7 @@ ELSE
 			{info 'no more slots free, what shall we do???'}
 			//at all this is fine....
 			DoDisconnect := TRUE;
+			PushError(newError:= ERRORS.NO_MORE_RECIVE_SLOTS_FREE );
 			
 		END_IF
 	ELSE
@@ -6863,6 +6937,7 @@ CASE RecivePakteType OF
 			IF ((TO_LINT(RemainingLength.RemainingLength) - 8 &gt; MaxPublishPacketSize) OR RemainingLength.RemainingLength = 0) AND NOT RemainingLength.BuffToSmall THEN
 				{info 'make this to a parameter to chose disconnect or discharge'}
 				DoDisconnect := TRUE;
+				PushError(newError:= ERRORS.RECIVED_PUBISH_TO_BIG_FOR_BUFFER);
 				CheckLenghtBuffer := TRUE;
 			ELSE 
 				IF RemainingLength.BuffToSmall THEN
@@ -6936,6 +7011,7 @@ IF CountWaitForRestOfPaket &gt; 1000 THEN
 	//standard wants to disconnect....
 	{info 'TODO:check to make disconnect as parameter'}
 	DoDisconnect := TRUE;
+	PushError(newError:= ERRORS.FULL_PACKET_NOT_RECIVED);
 	COM.R_BUF.SIZE := 0;	
 	//unknown paket recived
 	NotKnownPaket := COM.R_BUF.BUFFER[0] AND 16#F0;
@@ -6993,13 +7069,12 @@ END_IF</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">//cannot decrease memmory usage here at reset, this will trigger an accsess violation on windows... so usag maybe coruptetd! 
-//DynMemUsagePointer^ := DynMemUsagePointer^ - (MaxPublishPacketSize + SPLIT_PUBLISH_BUFFER_ADDITIONAL_RAM);
+
 MySplitTopic.destroy();
 GVL_MQTT.ProgNum := PROG_NUM.DESTROY_HANDLE_MQTT;
 {info 'semaphore'}
 
 {warning disable C0033}
-//SysMem23.SysMemFree(dwAddress:= SplitPublishBuffer, dwSize:= MaxPublishPacketSize + SPLIT_PUBLISH_BUFFER_ADDITIONAL_RAM);
 __DELETE(SplitPublishBuffer);
 {warning restore C0033}
 </xhtml>
@@ -7255,6 +7330,49 @@ CASE slot^.InDataFromFb^.MessageQoS OF
 			Publishsunacknowledged := Publishsunacknowledged + 1;
 		END_IF
 END_CASE</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="PushError" ObjectId="032ba540-e962-4dbd-b57d-b4afe7b2b716">
+              <interface>
+                <inputVars>
+                  <variable name="newError">
+                    <type>
+                      <derived name="ERRORS" />
+                    </type>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="i">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <variable name="cleanError">
+                    <type>
+                      <derived name="ONE_ERROR" />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">//move all Errors...
+
+FOR i:= COUNT_ERROR_HISTORY - 1 TO 1 BY - 1  DO
+	ErrorHistory[i] := ErrorHistory[i - 1];
+END_FOR
+ErrorHistory[0] := cleanError;
+ErrorHistory[0].error  := newError;
+ErrorHistory[0].when := localTdi.SYSTEM_TIME;
+
+IF newError = ERRORS.CONNECTION_REFUSED THEN
+	ErrorHistory[0].ERROR_C := COM.ERROR_C;
+	ErrorHistory[0].ERROR_T := COM.ERROR_T;
+END_IF</xhtml>
                 </ST>
               </body>
               <addData />
@@ -14673,6 +14791,7 @@ you can implement it in you one FBs and pass this to the CallbackStock or subscr
               <Object Name="MergeSplitedPublish" ObjectId="9d396c27-f37d-4dd3-95cd-3c260fb5beb7" />
               <Object Name="Publish" ObjectId="69dd8b32-66a3-4c6d-a9c4-38a21807fc8e" />
               <Object Name="PublishSendDone" ObjectId="e9258dd2-b3b8-4973-b15f-4cab2caff9e9" />
+              <Object Name="PushError" ObjectId="032ba540-e962-4dbd-b57d-b4afe7b2b716" />
             </Object>
             <Object Name="MQTT_CONTROL" ObjectId="9b642721-ce73-4258-9e15-8e2406aa0c86" />
             <Object Name="MQTTPublish" ObjectId="cc2d5fcf-b68d-4e57-b744-68b746e30a3b" />
@@ -14787,6 +14906,7 @@ you can implement it in you one FBs and pass this to the CallbackStock or subscr
               <Object Name="LIST_ALLVALUES_CALLBACK_DATA" ObjectId="4fbfdae5-c719-45fc-8db1-5715a3d53dc8" />
               <Object Name="CALLBACK_INSTANCES" ObjectId="6adfb87c-f00b-4c51-89ce-56189477a479" />
             </Folder>
+            <Object Name="ONE_ERROR" ObjectId="438702c0-b52d-451f-8dd4-20eaa74fc723" />
           </Folder>
           <Folder Name="ENUMs">
             <Object Name="MESSAGETYPE" ObjectId="f2b44ef8-0bd0-44af-8bb1-57f4cebd4fde" />
@@ -14798,6 +14918,7 @@ you can implement it in you one FBs and pass this to the CallbackStock or subscr
             <Object Name="TOPIC_MATCH" ObjectId="2d2ca9f7-31bc-451a-aac6-7d56f3a3c2f7" />
             <Object Name="PROG_NUM" ObjectId="c96a8249-695b-4b97-a93f-d9c79b7ceae9" />
             <Object Name="PUSHOVER_SOUND" ObjectId="323c00fa-583c-4685-ad23-5c7dea71be00" />
+            <Object Name="ERRORS" ObjectId="e92c2094-9817-4ed4-9dc8-48cfc52fdd42" />
           </Folder>
           <Folder Name="TestCases">
             <Object Name="TestcaseCheckTopivValid" ObjectId="632e8e92-ad6c-45dd-90a7-c985f011dd34" />

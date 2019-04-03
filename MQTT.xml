@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14" creationDateTime="2019-03-31T12:16:00.9343728" />
-  <contentHeader name="MQTT" version="1.0.0.0" modificationDateTime="2019-03-31T12:00:52.3133779" organization="Stefan Dreyer" author="Stefan Dreyer">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14" creationDateTime="2019-04-03T20:23:10.5138519" />
+  <contentHeader name="MQTT" version="1.0.0.0" modificationDateTime="2019-04-02T20:32:07.0255025" organization="Stefan Dreyer" author="Stefan Dreyer">
     <Comment>MQTT Stuff
 Using some cool stuff of OSCAT libs.
 see oscat.de
@@ -803,22 +803,14 @@ set to true if you want to use TLS</xhtml>
                 <simpleValue value="TRUE" />
               </initialValue>
             </variable>
-            <variable name="BROKER_USER">
-              <type>
-                <string length="254" />
-              </type>
-            </variable>
-            <variable name="BROKER_PASSWORD">
-              <type>
-                <string length="254" />
-              </type>
-            </variable>
             <variable name="MQTT_NO_AWNSER">
               <type>
                 <BOOL />
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">pakte wihout request-- return to recivestate 1</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">BROKER_USER:STRING(254);
+BROKER_PASSWORD:STRING(254);
+pakte wihout request-- return to recivestate 1</xhtml>
               </documentation>
             </variable>
           </struct>
@@ -4110,6 +4102,9 @@ MQTTClient(
               <type>
                 <string length="OSCAT_BASIC.STRING_LENGTH" />
               </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">use format: user:password@domain:port</xhtml>
+              </documentation>
             </variable>
             <variable name="TIMEOUT">
               <type>
@@ -8588,16 +8583,16 @@ CASE step OF
 		idx1 := InsertStringToBufferAndLength(Str:= ADR(COM.CLIENT_WILL_MESSAGE_DEAD), buff:= ADR(COM.S_BUF.BUFFER), pos:= idx1(*, size:= OSCAT_NETWORK.Constants.NETWORK_BUFFER_LONG_SIZE*));
 		//END_IF
 		//if user is given, set user bit an insert username
-		IF Standard.LEN(STR:= COM.BROKER_USER) &gt; 0 THEN
+		IF Standard.LEN(STR:= URL_DATA.USER) &gt; 0 THEN
 			COM.S_BUF.BUFFER[8] := COM.S_BUF.BUFFER[8] OR 2#10000000;
 			//now put in user name
-			idx1 := InsertStringToBufferAndLength(Str:= ADR(COM.BROKER_USER), buff:= ADR(COM.S_BUF.BUFFER), pos:= idx1(*, size:= OSCAT_NETWORK.Constants.NETWORK_BUFFER_LONG_SIZE*));
+			idx1 := InsertStringToBufferAndLength(Str:= ADR(URL_DATA.USER), buff:= ADR(COM.S_BUF.BUFFER), pos:= idx1(*, size:= OSCAT_NETWORK.Constants.NETWORK_BUFFER_LONG_SIZE*));
 		END_IF
 		//if password is given, set password bit an insert username
-		IF Standard.LEN(STR:= COM.BROKER_PASSWORD) &gt; 0 THEN
+		IF Standard.LEN(STR:= URL_DATA.PASSWORD) &gt; 0 THEN
 			COM.S_BUF.BUFFER[8] := COM.S_BUF.BUFFER[8] OR 2#1000000;
 			//now put in user name
-			idx1 := InsertStringToBufferAndLength(Str:= ADR(COM.BROKER_PASSWORD), buff:= ADR(COM.S_BUF.BUFFER), pos:= idx1(*, size:= OSCAT_NETWORK.Constants.NETWORK_BUFFER_LONG_SIZE*));
+			idx1 := InsertStringToBufferAndLength(Str:= ADR(URL_DATA.PASSWORD), buff:= ADR(COM.S_BUF.BUFFER), pos:= idx1(*, size:= OSCAT_NETWORK.Constants.NETWORK_BUFFER_LONG_SIZE*));
 		END_IF
 		//now cal packet lengt and insert remaining legth
 		remaining_length := idx1 - 2;
@@ -14532,6 +14527,63 @@ t1.NewTopic(in:=ADR('+/+'),test:= TRUE, SizeOfString:= 0);
           </data>
         </addData>
       </pou>
+      <pou name="TestUserPassword" pouType="functionBlock">
+        <interface>
+          <localVars>
+            <variable name="MQTT1">
+              <type>
+                <derived name="HANDLE_MQTT" />
+              </type>
+            </variable>
+            <variable name="MQTT2">
+              <type>
+                <derived name="HANDLE_MQTT" />
+              </type>
+            </variable>
+            <variable name="MQTT3">
+              <type>
+                <derived name="HANDLE_MQTT" />
+              </type>
+            </variable>
+            <variable name="info">
+              <type>
+                <derived name="MQTT_INFO" />
+              </type>
+            </variable>
+            <variable name="MQTT_IN_OUT">
+              <type>
+                <derived name="MQTT_IN_OUT" />
+              </type>
+            </variable>
+          </localVars>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">MQTT1(MQTT_INFO := info,
+	MQTT_IN_OUT := MQTT_IN_OUT,
+	ENABLE := TRUE,
+	URL:= 'User1:Mypassword@test.mosquitto.org:1883');
+	
+MQTT2(MQTT_INFO := info,
+	MQTT_IN_OUT := MQTT_IN_OUT,
+	ENABLE := TRUE,
+	URL:= 'User1@test.mosquitto.org:1883');
+	
+MQTT3(MQTT_INFO := info,
+	MQTT_IN_OUT := MQTT_IN_OUT,
+	ENABLE := TRUE,
+	URL:= 'User2:Mypassword@test.mosquitto.org:1883');
+	
+
+</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>43d8c8a6-2fd8-4484-9753-2e4760687975</ObjectId>
+          </data>
+        </addData>
+      </pou>
     </pous>
   </types>
   <instances>
@@ -14944,6 +14996,7 @@ you can implement it in you one FBs and pass this to the CallbackStock or subscr
             <Object Name="TestLongPublish" ObjectId="b18c8267-7251-461e-ae79-29a6c51f3a8f" />
             <Object Name="TestLongStringList" ObjectId="ba26506c-e830-4dfd-b732-7d24065c29cf" />
             <Object Name="TestStringPointer" ObjectId="3b7f3b24-7fb1-4e89-9afb-39c5a11dd2c3" />
+            <Object Name="TestUserPassword" ObjectId="43d8c8a6-2fd8-4484-9753-2e4760687975" />
           </Folder>
           <Object Name="GVL_MQTT" ObjectId="976dc25f-9617-40b0-bef6-a6cbfe28769f" />
           <Folder Name="Docs">

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14" creationDateTime="2019-04-03T20:23:10.5138519" />
-  <contentHeader name="MQTT" version="1.0.0.0" modificationDateTime="2019-04-02T20:32:07.0255025" organization="Stefan Dreyer" author="Stefan Dreyer">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14" creationDateTime="2019-04-07T19:45:32.0413909" />
+  <contentHeader name="MQTT" version="1.0.0.0" modificationDateTime="2019-04-07T19:41:29.9511468" organization="Stefan Dreyer" author="Stefan Dreyer">
     <Comment>MQTT Stuff
 Using some cool stuff of OSCAT libs.
 see oscat.de
@@ -5036,6 +5036,7 @@ CASE step OF
 
 	00:	IF ENABLE THEN
 			MQTT_IN_OUT.handleFB := THIS;
+			PingRequestet := FALSE;
 			PublishsUnacknowledged := 0;
 			PUBREC_ERROR_INDEX := 0;
 			CountRepeatedPingDisconnect := 0;

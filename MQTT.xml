@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14" creationDateTime="2019-04-07T19:45:32.0413909" />
-  <contentHeader name="MQTT" version="1.0.0.0" modificationDateTime="2019-04-07T19:41:29.9511468" organization="Stefan Dreyer" author="Stefan Dreyer">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14" creationDateTime="2019-04-28T13:35:43.0342049" />
+  <contentHeader name="MQTT" version="1.0.0.0" modificationDateTime="2019-04-28T13:23:16.9669479" organization="Stefan Dreyer" author="Stefan Dreyer">
     <Comment>MQTT Stuff
 Using some cool stuff of OSCAT libs.
 see oscat.de
@@ -59,6 +59,26 @@ more to describe
               <value name="NO_MORE_RECIVE_SLOTS_FREE" value="6" />
               <value name="CONNECTION_ESTABLISHED" value="7" />
               <value name="TIMEOUT_CONNECTION" value="8" />
+              <value name="REPEAT_PUBLISH_PUBCOMP" value="9" />
+              <value name="REPEAT_PUBREL" value="10" />
+              <value name="REORDER_PUBREC" value="11" />
+              <value name="REORDER_PUBLISH_OUTGOING" value="12" />
+              <value name="REPEAT_PUBLISH_PUBREC" value="13" />
+              <value name="REPEAT_PUBLISH_PUBACK" value="14" />
+              <value name="HARD_DISCONNECT" value="15" />
+              <value name="MOVED_TO_BIG_RECIVE_BUFFER" value="16" />
+              <value name="NEED_BUFFER_MOV" value="17" />
+              <value name="UNKNOWN_PAKET_RECIVED" value="18" />
+              <value name="TO_BIG_PAKET" value="19" />
+              <value name="TOPIC_MOVED_DOWN" value="20" />
+              <value name="TOPIC_AND_PAYLOAD_MOVED" value="21" />
+              <value name="PAYLOAD_MOVED_UP" value="22" />
+              <value name="TOPIC_MOVED_DOWN_NETWORK" value="23" />
+              <value name="PAYLOAD_MOVED_UP_NETWORK" value="24" />
+              <value name="REPEAT_PUBREC" value="25" />
+              <value name="PUBEC_DISCHARGE" value="26" />
+              <value name="REODER_PUBLISH_INCOMMING" value="27" />
+              <value name="REORDER_PUBCOMP" value="28" />
             </values>
           </enum>
         </baseType>
@@ -808,9 +828,7 @@ set to true if you want to use TLS</xhtml>
                 <BOOL />
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">BROKER_USER:STRING(254);
-BROKER_PASSWORD:STRING(254);
-pakte wihout request-- return to recivestate 1</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">pakte wihout request-- return to recivestate 1</xhtml>
               </documentation>
             </variable>
           </struct>
@@ -943,36 +961,18 @@ pakte wihout request-- return to recivestate 1</xhtml>
                 <BOOL />
               </type>
             </variable>
-            <variable name="FB_NO_AUTO">
-              <type>
-                <UINT />
-              </type>
-            </variable>
-            <variable name="FB_NO_AUTO_COUNT">
-              <type>
-                <UINT />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">FBs count</xhtml>
-              </documentation>
-            </variable>
-            <variable name="FB_NO_AUTO_TOKEN">
-              <type>
-                <UINT />
-              </type>
-              <initialValue>
-                <simpleValue value="1" />
-              </initialValue>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">FB Token</xhtml>
-              </documentation>
-            </variable>
             <variable name="COM_CONFIG">
               <type>
                 <derived name="COM_CONFIG" />
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">config for boot up</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">Number of FB, auto increment
+FB_NO_AUTO:UINT;//
+FBs count
+FB_NO_AUTO_COUNT:UINT;
+FB Token
+FB_NO_AUTO_TOKEN:UINT := 1;
+config for boot up</xhtml>
               </documentation>
             </variable>
             <variable name="ClientID">
@@ -1145,6 +1145,11 @@ pakte wihout request-- return to recivestate 1</xhtml>
                 <BYTE />
               </type>
             </variable>
+            <variable name="text">
+              <type>
+                <string length="255" />
+              </type>
+            </variable>
           </struct>
         </baseType>
         <addData>
@@ -1244,20 +1249,14 @@ pakte wihout request-- return to recivestate 1</xhtml>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml">PakatID for header</xhtml>
               </documentation>
             </variable>
-            <variable name="FbId">
-              <type>
-                <UINT />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">ID of MQTT FB to store or of request to Broker</xhtml>
-              </documentation>
-            </variable>
             <variable name="SendSucsess">
               <type>
                 <BOOL />
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">Send was succsessfull</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">ID of MQTT FB to store or of request to Broker
+FbId:UINT;
+Send was succsessfull</xhtml>
               </documentation>
             </variable>
             <variable name="Callback">
@@ -4751,10 +4750,7 @@ SplitPublishLock:BOOL;</xhtml>
                 <BOOL />
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">BufferTopic:ARRAY[0..SIZEOF(COM.S_BUF.BUFFER)]OF BYTE;//doesn't need to be biger than network buffer, 
-because is only used if full paket resits in network buffer
-BufferPayload:ARRAY[0..SIZEOF(COM.S_BUF.BUFFER)]OF BYTE;
-publish paket broken, waiting for more data</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">publish paket broken, waiting for more data</xhtml>
               </documentation>
             </variable>
             <variable name="DoDisconnect">
@@ -4949,7 +4945,7 @@ publish paket broken, waiting for more data</xhtml>
                 <UINT />
               </type>
               <initialValue>
-                <simpleValue value="50" />
+                <simpleValue value="1000" />
               </initialValue>
             </variable>
           </localVars>
@@ -4980,40 +4976,16 @@ sudo chmod -v a=r /tmp/mosquitto.log
 
 
 TODO: Take care of clean session, is enabled, do it paramable?
-
-layout publish recive buffer:
-
-	recive publish buffer layout:
-	0 byte 3 of topic length of udint
-	1 byte 2 of topic length of udint
-	2 byte 1 of topic length of udint
-	3 byte 0 of topic length of udint
-	4+n Topic string without termination
-	n		byte 3 of payload length of udint
-	n+1		byte 2 of payload length of udint
-	n+2		byte 1 of payload length of udint
-	n+3		byte 0 of payload length of udint
-	n+4+x Payload
-	
-	
 	
 </xhtml>
           </documentation>
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">//first organisize FB nums and FB Tokens...
-myFbNo := MQTT_IN_OUT.FB_NO_AUTO + 1;
-MQTT_IN_OUT.FB_NO_AUTO_COUNT := myFbNo;
-//reset token
-IF MQTT_IN_OUT.FB_NO_AUTO_TOKEN &gt;= myFbNo - 1 THEN
-	MQTT_IN_OUT.FB_NO_AUTO_TOKEN := 1;
-END_IF
-IF MQTT_INFO.MQTT_CONNECTED THEN
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">IF MQTT_INFO.MQTT_CONNECTED THEN
 	SendFree := COM.S_BUF.SIZE = 0;	
 END_IF
 
-MQTT_IN_OUT.FB_NO_AUTO := 0;//reset FB number
 CycleTime := OSCAT_BASIC.T_PLC_MS() - LastCycleTime;
 LastCycleTime := OSCAT_BASIC.T_PLC_MS();
 //get system time and so one
@@ -5098,18 +5070,17 @@ CASE step OF
 
 			step := 10;
 			COM.MQTT_CON := TRUE;
-				
-					
-		
+			
 		END_IF;
 	10:	IF MQTT_INFO.MQTT_CONNECTED THEN
 			step := 40;
-			PushError(newError:= ERRORS.CONNECTION_ESTABLISHED);
+			PushError(newError:= ERRORS.CONNECTION_ESTABLISHED, text:='');
 		END_IF;
 		IF TimeoutConnection.Q THEN
-			PushError(newError:= ERRORS.TIMEOUT_CONNECTION );
+			PushError(newError:= ERRORS.TIMEOUT_CONNECTION, text:='' );
 			step := 0;//reset steps
 			destroy();
+			
 		END_IF
 	40:	
 		IF PublishSplited THEN
@@ -5143,6 +5114,7 @@ CASE step OF
 		IF DoDisconnect THEN
 			DoDisconnect := FALSE;
 			//here hard disconnect
+			PushError(newError:= ERRORS.HARD_DISCONNECT , text:='');
 			COM.MQTT_CON := FALSE; (* MQTT Verbindung beenden *)
 			COM.MQTT_ABORT := TRUE;
 			
@@ -5169,7 +5141,7 @@ END_CASE;
 
 IF CountRepeatedPingDisconnect &gt; MAX_PING_REPEATS THEN
 	DoDisconnect := TRUE;
-	PushError(newError:= ERRORS.MAX_PING_REPEATS);
+	PushError(newError:= ERRORS.MAX_PING_REPEATS, text:='');
 END_IF
 
 
@@ -5187,7 +5159,7 @@ END_IF
 
 IF COM.ERROR_T &gt; BYTE#0 THEN  (* FEHLER *)
 	step := 0;
-	PushError(newError:= ERRORS.CONNECTION_REFUSED);
+	PushError(newError:= ERRORS.CONNECTION_REFUSED, text:='');
 END_IF;
 //put status to local clients
 MQTT_IN_OUT.BROKER_CONNECTED := MQTT_INFO.MQTT_CONNECTED;
@@ -5228,7 +5200,7 @@ CountRepeatedPingDisconnect := 0;</xhtml>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF MQTT_IN_OUT.InFree THEN 
 	MQTT_IN_OUT.IN := ADR(PingData); //set request
 	PingData.PaketData.MessageType := MESSAGETYPE.PINGREQ;
-	PingData.PaketData.FbId := myFbNo;
+	//PingData.PaketData.FbId := myFbNo;
 	MQTT_IN_OUT.InFree := FALSE;
 	PingRequestet := TRUE;
 END_IF
@@ -5417,6 +5389,8 @@ FOR i := 0 TO MyConstants.QoS_BUFFER_SIZE - 1 DO
 			
 		STEPS_OUT.WAIT_PUBACK:
 			IF OutData[i].TimeOutStarted AND OutData[i].TimeOut.Q THEN
+				PushError(newError:= ERRORS.REPEAT_PUBLISH_PUBACK, text:= CONCAT(STR1 := CONCAT(STR1:= 'Slot:', STR2:= TO_STRING(i)),
+							 STR2:= CONCAT(STR1:=', PAKET:', STR2:=TO_STRING(OutData[i].InDataFromFb^.PaketId ))));
 				//timeout, need repead
 				OutData[i].InDataFromFb^.DUP := TRUE;
 				OutData[i].step := STEPS_OUT.SEND_PUBLSIH;//repeat publish
@@ -5426,6 +5400,8 @@ FOR i := 0 TO MyConstants.QoS_BUFFER_SIZE - 1 DO
 			
 		STEPS_OUT.WAIT_PUBREC:
 			IF OutData[i].TimeOutStarted AND OutData[i].TimeOut.Q THEN
+				PushError(newError:= ERRORS.REPEAT_PUBLISH_PUBREC, text:= CONCAT(STR1 := CONCAT(STR1:= 'Slot:', STR2:= TO_STRING(i)),
+							 STR2:= CONCAT(STR1:=', PAKET:', STR2:=TO_STRING(OutData[i].InDataFromFb^.PaketId ))));
 				//timeout, need repead
 				OutData[i].InDataFromFb^.DUP := TRUE;
 				OutData[i].step := STEPS_OUT.SEND_PUBLSIH;//repeat publish
@@ -5450,6 +5426,11 @@ FOR i := 0 TO MyConstants.QoS_BUFFER_SIZE - 1 DO
 					OutData[i].step := STEPS_OUT.SEND_PUBLSIH;
 					OutData[i].InDataFromFb^.DUP := TRUE;
 					RepeatedPublishsAfterPubrel := RepeatedPublishsAfterPubrel + 1;
+					PushError(newError:= ERRORS.REPEAT_PUBLISH_PUBCOMP, text:= CONCAT(STR1 := CONCAT(STR1:= 'Slot:', STR2:= TO_STRING(i)),
+							 STR2:= CONCAT(STR1:=', PAKET:', STR2:=TO_STRING(OutData[i].InDataFromFb^.PaketId ))));
+				ELSE
+					PushError(newError:= ERRORS.REPEAT_PUBREL, text:= CONCAT(STR1 := CONCAT(STR1:= 'Slot:', STR2:= TO_STRING(i)),
+							 STR2:= CONCAT(STR1:=', PAKET:', STR2:=TO_STRING(OutData[i].InDataFromFb^.PaketId ))));
 				END_IF
 			END_IF
 		IF NOT (OutData[i].step = STEPS_OUT.WAIT_DATA) THEN
@@ -5501,6 +5482,7 @@ END_IF
 
 //Hamdel PubrelOrderIndexCounter
 IF PubrelOrderIndexCounter &gt; MyConstants.REORDER_VALUE THEN 
+	PushError(newError:= ERRORS.REORDER_PUBREC , text:= '');
 	//do it brute force, just sub 20000 to every value...
 	FOR i := 0 TO MyConstants.QoS_BUFFER_SIZE - 1 DO
 		OutData[i].PUBRECOrder := OutData[i].PUBRECOrder - MyConstants.SUBSTRACTION_VALUE;
@@ -5509,6 +5491,7 @@ IF PubrelOrderIndexCounter &gt; MyConstants.REORDER_VALUE THEN
 END_IF
 //Hamdel PublishOrderIndexCounter
 IF OutgoingPublishOrderIndexCounter &gt; MyConstants.REORDER_VALUE THEN 
+	PushError(newError:= ERRORS.REORDER_PUBLISH_OUTGOING, text:= '');
 	//do it brute force, just sub 20000 to every value...
 	FOR i := 0 TO MyConstants.QoS_BUFFER_SIZE - 1 DO
 		OutData[i].PUBLISHOrder := OutData[i].PUBLISHOrder - MyConstants.SUBSTRACTION_VALUE;
@@ -5589,9 +5572,17 @@ FOR i := 0 TO MyConstants.QoS_BUFFER_SIZE - 1 DO
 			PUBREC_ERROR_ID_BUFFER[PUBREC_ERROR_INDEX] := InData[i].PaketID; 
 			PUBREC_ERROR_INDEX := PUBREC_ERROR_INDEX + 1;
 			InData[i].CountPubrecRepeat := InData[i].CountPubrecRepeat + 1;
+				
 			IF InData[i].CountPubrecRepeat &gt; COUNT_MAX_PUBREC_REPEAT_TO_DISCHARGE THEN
 				InData[i].CountPubrecRepeat := 0;
 				InData[i].step := STEPS_IN.WAIT_DATA;
+				PushError(newError:= ERRORS.PUBEC_DISCHARGE, text:= CONCAT(STR1 := CONCAT(STR1:= 'Slot:', STR2:= TO_STRING(i)),
+							 STR2:= CONCAT(STR1:=', PAKET:', STR2:=TO_STRING(InData[i].PaketID))));
+			
+			ELSE
+				PushError(newError:= ERRORS.REORDER_PUBREC, text:= CONCAT(STR1 := CONCAT(STR1:= 'Slot:', STR2:= TO_STRING(i)),
+							 STR2:= CONCAT(STR1:=', PAKET:', STR2:=TO_STRING(InData[i].PaketID))));
+			
 			END_IF
 			IF PUBREC_ERROR_INDEX &gt;= PUBREC_ERROR_ID_BUFFER_SIZE THEN
 				PUBREC_ERROR_INDEX := 0;
@@ -5675,6 +5666,8 @@ IF PubcompSendListCount &gt; 1 THEN
 END_IF
 //Hamdel PublishOrderIndexCounter
 IF IncomingPublishOrderIndexCounter &gt; MyConstants.REORDER_VALUE THEN 
+	PushError(newError:= ERRORS.REODER_PUBLISH_INCOMMING , text:= '');
+			
 	//do it brute force, just sub 20000 to every value...
 	FOR i := 0 TO MyConstants.QoS_BUFFER_SIZE - 1 DO
 		InData[i].PUBLISHOrder := InData[i].PUBLISHOrder - MyConstants.SUBSTRACTION_VALUE;
@@ -5684,6 +5677,8 @@ END_IF
 
 //Hamdel PublishOrderIndexCounter
 IF PubcompOrderIndexCounter &gt; MyConstants.REORDER_VALUE THEN 
+	PushError(newError:= ERRORS.REORDER_PUBCOMP, text:= '');
+	
 	//do it brute force, just sub 20000 to every value...
 	FOR i := 0 TO MyConstants.QoS_BUFFER_SIZE - 1 DO
 		InData[i].PUBCOMPOrder := InData[i].PUBCOMPOrder - MyConstants.SUBSTRACTION_VALUE;
@@ -6375,7 +6370,8 @@ IF COM.R_BUF.SIZE &gt; 0 THEN
 								PaketFound := TRUE;
 								//now kick of Callback
 								FOR j := 0 TO CALLBACKS_BUFFER_SIZE - 1 DO
-									IF SubscribeCallbacks[j].FbId = OutData[i].InDataFromFb^.FbId THEN
+									IF SubscribeCallbacks[j].Callback = OutData[i].InDataFromFb^.Callback  THEN
+									//IF SubscribeCallbacks[j].FbId = OutData[i].InDataFromFb^.FbId THEN
 										//callback found, now kill it...
 										SubscribeCallbacks[j].free := TRUE;
 										SubscribeCallbacks[j].FbId := 0;
@@ -6415,8 +6411,7 @@ IF COM.R_BUF.SIZE &gt; 0 THEN
 									IF SubscribeCallbacks[j].free THEN
 										SubscribeCallbacks[j].free := FALSE;
 										SubscribeCallbacks[j].Callback := OutData[i].InDataFromFb^.Callback;
- 										SubscribeCallbacks[j].FbId := OutData[i].InDataFromFb^.FbId;
-										SubscribeCallbacks[j].SplitTopic := OutData[i].InDataFromFb^.SplitTopic;
+ 										SubscribeCallbacks[j].SplitTopic := OutData[i].InDataFromFb^.SplitTopic;
 										SubscribeCallbacks[j].ExpectingString := OutData[i].InDataFromFb^.ExpectingString;
 										EXIT;
 									END_IF
@@ -6526,6 +6521,7 @@ IF COM.R_BUF.SIZE &gt; 0 THEN
 				COM.R_BUF.SIZE := 0;	
 				//unknown paket recived
 				NotKnownPaket := COM.R_BUF.BUFFER[0] AND 16#F0;
+				PushError(newError:= ERRORS.UNKNOWN_PAKET_RECIVED , text:='');
 				//alway reset recive!
 				COM.MQTT_RCV_STATE := BYTE#0;//recive zurücksetzten
 				COM.R_BUF.SIZE := 0;
@@ -6708,7 +6704,7 @@ IF RemainingLength.Error THEN
 	CountLengthErrors := CountLengthErrors;
 	//on standard i MUST diconnect!!!
 	DoDisconnect := TRUE;
-	PushError(newError:= ERRORS.RECIVED_PUBLISH_REMAINING_LENGTH_ERROR);
+	PushError(newError:= ERRORS.RECIVED_PUBLISH_REMAINING_LENGTH_ERROR, text:='');
 	
 	RETURN;
 END_IF
@@ -6757,7 +6753,7 @@ ELSE
 			{info 'no more slots free, what shall we do???'}
 			//at all this is fine....
 			DoDisconnect := TRUE;
-			PushError(newError:= ERRORS.NO_MORE_RECIVE_SLOTS_FREE );
+			PushError(newError:= ERRORS.NO_MORE_RECIVE_SLOTS_FREE , text:='');
 			
 		END_IF
 	ELSE
@@ -6776,6 +6772,7 @@ IF RemainingLength.RemainingLength &gt; (COM_CONFIG.MaxTopicElementSize * COM_CO
 	PayloadSize &gt; COM_CONFIG.MaxPayloadSize THEN
 	{info 'check here if to disconnect'}
 	//paket to big for my Strings, but do QoS stuff!!!! no standard, standard wants disconnect!
+	PushError(newError:= ERRORS.TO_BIG_PAKET , text:='');
 	CountToBigTopics := CountToBigTopics  + 1;
 	{info 'check if last to big topic is to saved, or just take memmove'}
 	(*LastToBigTopic := OSCAT_BASIC.BUFFER_TO_STRING(PT:= ADR(BufferIn[idx]), SIZE:= BufferSize,
@@ -6808,6 +6805,9 @@ IF OutData THEN
 					//move Topic down
 					MEM.MemMove(pSource:= ADR(BufferIn[TopicPosStart]), pDestination:= ADR(BufferIn[TopicPosStart - 1]), uiNumberOfBytes:= TopicSize);
 					TopicPosStart := TopicPosStart - 1;//now topic resits one deeper
+					IF GVL_MQTT.LOG_BUFFER_MOVES THEN
+						PushError(newError:= ERRORS.TOPIC_MOVED_DOWN , text:='');
+					END_IF
 				ELSE
 					IF idx + PayloadPosStart + PayloadSize &gt; MyConstants.NETWORK_BUFFER_LONG_SIZE THEN
 						//need to move payload and topic, I'm at the top border of network buffer
@@ -6818,6 +6818,9 @@ IF OutData THEN
 						TopicPosStart := TopicPosStart - 2;
 						//change Payload Pointer
 						PayloadPosStart := PayloadPosStart - 1;
+						IF GVL_MQTT.LOG_BUFFER_MOVES THEN
+							PushError(newError:= ERRORS.TOPIC_AND_PAYLOAD_MOVED, text:='');
+						END_IF
 					ELSE
 						//first, save following data
 						//move Payload up
@@ -6825,6 +6828,9 @@ IF OutData THEN
 						FollowingDataBuffer[0] := BufferIn[PayloadPosStart + PayloadSize];
 						SysMem.SysMemMove(pDest:= ADR(BufferIn[PayloadPosStart + 1]), pSrc:= ADR(BufferIn[PayloadPosStart]), udiCount:= TO_UDINT(PayloadSize));
 						PayloadPosStart := PayloadPosStart + 1;//payload now resits one higher
+						IF GVL_MQTT.LOG_BUFFER_MOVES THEN
+							PushError(newError:= ERRORS.PAYLOAD_MOVED_UP, text:='');
+						END_IF
 					END_IF
 				END_IF
 			END_IF
@@ -6854,10 +6860,16 @@ IF OutData THEN
 					//move Topic down
 					MEM.MemMove(pSource:= ADR(BufferIn[TopicPosStart]), pDestination:= ADR(BufferIn[TopicPosStart - 1]), uiNumberOfBytes:= TopicSize);
 					TopicPosStart := TopicPosStart - 1;//now topic resits one deeper
+					IF GVL_MQTT.LOG_BUFFER_MOVES THEN
+						PushError(newError:= ERRORS.TOPIC_MOVED_DOWN_NETWORK, text:='');
+					END_IF
 				ELSE
 					//move Payload up
 					SysMem.SysMemMove(pDest:= ADR(BufferIn[PayloadPosStart + 1]), pSrc:= ADR(BufferIn[PayloadPosStart]), udiCount:= TO_UDINT(PayloadSize));
 					PayloadPosStart := PayloadPosStart + 1;//payload now resits one higher
+					IF GVL_MQTT.LOG_BUFFER_MOVES THEN
+						PushError(newError:= ERRORS.PAYLOAD_MOVED_UP_NETWORK, text:='');
+					END_IF
 				END_IF
 			END_IF
 			//alway set termination for payload because it could be a string
@@ -6933,7 +6945,7 @@ CASE RecivePakteType OF
 			IF ((TO_LINT(RemainingLength.RemainingLength) - 8 &gt; MaxPublishPacketSize) OR RemainingLength.RemainingLength = 0) AND NOT RemainingLength.BuffToSmall THEN
 				{info 'make this to a parameter to chose disconnect or discharge'}
 				DoDisconnect := TRUE;
-				PushError(newError:= ERRORS.RECIVED_PUBISH_TO_BIG_FOR_BUFFER);
+				PushError(newError:= ERRORS.RECIVED_PUBISH_TO_BIG_FOR_BUFFER, text:='');
 				CheckLenghtBuffer := TRUE;
 			ELSE 
 				IF RemainingLength.BuffToSmall THEN
@@ -6955,6 +6967,7 @@ CASE RecivePakteType OF
 						COM.MQTT_RCV_STATE := BYTE#0;//recive zurücksetzten	
 						PublishSplited := TRUE;
 						CheckLenghtBuffer := TRUE; 	
+						PushError(newError:= ERRORS.MOVED_TO_BIG_RECIVE_BUFFER , text:='');
 					END_IF
 				END_IF
 			END_IF
@@ -6987,6 +7000,7 @@ CASE RecivePakteType OF
 END_CASE
 
 IF NeedBufferMove AND NOT ( IdxIn = 0)THEN
+	PushError(newError:= ERRORS.NEED_BUFFER_MOV, text:='');
 	MoveBufferForSplitPaket(idx:= IdxIn);
 	InBufferMoved := 1;
 	
@@ -7007,7 +7021,7 @@ IF CountWaitForRestOfPaket &gt; 1000 THEN
 	//standard wants to disconnect....
 	{info 'TODO:check to make disconnect as parameter'}
 	DoDisconnect := TRUE;
-	PushError(newError:= ERRORS.FULL_PACKET_NOT_RECIVED);
+	PushError(newError:= ERRORS.FULL_PACKET_NOT_RECIVED, text:='');
 	COM.R_BUF.SIZE := 0;	
 	//unknown paket recived
 	NotKnownPaket := COM.R_BUF.BUFFER[0] AND 16#F0;
@@ -7340,6 +7354,11 @@ END_CASE</xhtml>
                       <derived name="ERRORS" />
                     </type>
                   </variable>
+                  <variable name="text">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
                 </inputVars>
                 <localVars>
                   <variable name="i">
@@ -7364,6 +7383,7 @@ END_FOR
 ErrorHistory[0] := cleanError;
 ErrorHistory[0].error  := newError;
 ErrorHistory[0].when := localTdi.SYSTEM_TIME;
+ErrorHistory[0].text := text;
 
 IF newError = ERRORS.CONNECTION_REFUSED THEN
 	ErrorHistory[0].ERROR_C := COM.ERROR_C;
@@ -8788,7 +8808,7 @@ last_step := step;
         <body>
           <ST>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">IF not DbPointerIo THEN RETURN; END_IF
-MQTT_IN_OUT^.FB_NO_AUTO := MQTT_IN_OUT^.FB_NO_AUTO + 1;</xhtml>
+//MQTT_IN_OUT^.FB_NO_AUTO := MQTT_IN_OUT^.FB_NO_AUTO + 1;</xhtml>
           </ST>
         </body>
         <addData>
@@ -8839,6 +8859,9 @@ IF request THEN
 END_IF</xhtml>
                 </ST>
               </body>
+              <BuildProperties>
+                <ExcludeFromBuild>true</ExcludeFromBuild>
+              </BuildProperties>
               <addData />
             </Method>
           </data>
@@ -8853,6 +8876,9 @@ END_IF
 TokenRequested := FALSE;</xhtml>
                 </ST>
               </body>
+              <BuildProperties>
+                <ExcludeFromBuild>true</ExcludeFromBuild>
+              </BuildProperties>
               <addData />
             </Method>
           </data>
@@ -9067,7 +9093,7 @@ IF requestToSend AND NOT WasSendet THEN
 	MyOutData.PaketData.MqttTopicLength := CommonTypesAndFunctions.LEN(Topic);
 	//don't sent zero lengt topics...
 	IF  MyOutData.PaketData.MqttTopicLength &gt; 0 THEN
-		MyOutData.PaketData.FbId := MQTT_IN_OUT^.FB_NO_AUTO;
+		//MyOutData.PaketData.FbId := MQTT_IN_OUT^.FB_NO_AUTO;
 		MyOutData.PaketData.MessageType := MESSAGETYPE.PUBLISH;
 		MyOutData.PaketData.MessageRetain := MRetain;
 		MyOutData.PaketData.MessageQoS := QoSIn;
@@ -9792,16 +9818,16 @@ IF MyOutData.PaketData.CallbackError THEN
 	SubscribeFail := TRUE;
 END_IF
 
-IF NeedSubscribe AND NOT SubscribeWasSended AND MQTT_IN_OUT^.InFree(* AND CheckToken()*) AND MQTT_IN_OUT^.BROKER_CONNECTED THEN
+IF NeedSubscribe AND NOT SubscribeWasSended AND MQTT_IN_OUT^.InFree AND MQTT_IN_OUT^.BROKER_CONNECTED THEN
  
-	TopicValid := MySplitTopic.NewTopic(in:= Topic, test:= TRUE, SizeOfString:= 0); //CheckTopicValid(Target:= ADR(SplitTopic)); 
+	TopicValid := MySplitTopic.NewTopic(in:= Topic, test:= TRUE, SizeOfString:= 0);  
 	IF TopicValid = TOPIC_VALID.TOPIC_VALID THEN
 		//try to subscribe
 		SubscribeWasSended := TRUE;
 		//send free
 		MQTT_IN_OUT^.IN := ADR(MyOutData);
 		MQTT_IN_OUT^.InFree := FALSE;
-		MyOutData.PaketData.FbId := MQTT_IN_OUT^.FB_NO_AUTO;
+		//MyOutData.PaketData.FbId := MQTT_IN_OUT^.FB_NO_AUTO;
 		MyOutData.PaketData.MessageType := MESSAGETYPE.SUBSCRIBE;
 		MyOutData.PaketData.MessageQoS := QoSSubscribe;
 		MyOutData.PaketData.Callback := Callback;
@@ -9815,20 +9841,21 @@ IF NeedSubscribe AND NOT SubscribeWasSended AND MQTT_IN_OUT^.InFree(* AND CheckT
 		NeedSubscribe := FALSE;
 		SubscribeFail := TRUE;
 	END_IF
-	ReleaseToken();
+	//ReleaseToken();
 END_IF
 
-IF NeedUnsubscribe AND NOT UnsubscribeWasSended AND MQTT_IN_OUT^.InFree(* AND CheckToken() *)AND MQTT_IN_OUT^.BROKER_CONNECTED THEN
+IF NeedUnsubscribe AND NOT UnsubscribeWasSended AND MQTT_IN_OUT^.InFree AND MQTT_IN_OUT^.BROKER_CONNECTED THEN
 	//try to unsubscribe
 	UnsubscribeWasSended := TRUE;
 	//send free
 	MQTT_IN_OUT^.IN := ADR(MyOutData);
 	MQTT_IN_OUT^.InFree := FALSE;
-	MyOutData.PaketData.FbId := MQTT_IN_OUT^.FB_NO_AUTO;
+	//MyOutData.PaketData.FbId := MQTT_IN_OUT^.FB_NO_AUTO;
+	MyOutData.PaketData.Callback := Callback;
 	MyOutData.PaketData.MessageType := MESSAGETYPE.UNSUBSCRIBE;
 	MyOutData.PaketData.MqttTopic := Topic;
 	MyOutData.PaketData.MqttTopicLength := CommonTypesAndFunctions.LEN(Topic);
-	ReleaseToken();
+	//ReleaseToken();
 END_IF
 
 //place behinde send, so leave "Token" to rest....
@@ -14601,14 +14628,6 @@ MQTT3(MQTT_INFO := info,
             <simpleValue value="50" />
           </initialValue>
         </variable>
-        <variable name="FB_BUFFER_SIZE">
-          <type>
-            <UINT />
-          </type>
-          <initialValue>
-            <simpleValue value="5000" />
-          </initialValue>
-        </variable>
         <variable name="_COM_PAYLOAD_SIZE">
           <type>
             <UINT />
@@ -14616,33 +14635,9 @@ MQTT3(MQTT_INFO := info,
           <initialValue>
             <simpleValue value="256" />
           </initialValue>
-        </variable>
-        <variable name="_MAX_TOPIC_LEVEL_SIZE">
-          <type>
-            <UINT />
-          </type>
-          <initialValue>
-            <simpleValue value="255" />
-          </initialValue>
           <documentation>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">_COM_STRING_SIZE:UINT:=COM_PAYLOAD_SIZE;</xhtml>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">FB_BUFFER_SIZE:UINT:=5000;</xhtml>
           </documentation>
-        </variable>
-        <variable name="_MAX_PARTS_AT_TOPIC">
-          <type>
-            <INT />
-          </type>
-          <initialValue>
-            <simpleValue value="25" />
-          </initialValue>
-        </variable>
-        <variable name="_SQL_DATA_BUFFER_SIZE">
-          <type>
-            <UINT />
-          </type>
-          <initialValue>
-            <simpleValue value="200" />
-          </initialValue>
         </variable>
         <variable name="NETWORK_BUFFER_LONG_SIZE">
           <type>
@@ -14651,6 +14646,12 @@ MQTT3(MQTT_INFO := info,
           <initialValue>
             <simpleValue value="4095" />
           </initialValue>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">_COM_STRING_SIZE:UINT:=COM_PAYLOAD_SIZE;
+_MAX_TOPIC_LEVEL_SIZE:UINT:=255;
+_MAX_PARTS_AT_TOPIC:INT:=25;
+_SQL_DATA_BUFFER_SIZE:UINT:=200;</xhtml>
+          </documentation>
         </variable>
         <variable name="KEEP_ALIVE_TIME">
           <type>
@@ -14698,14 +14699,6 @@ MQTT3(MQTT_INFO := info,
             <xhtml xmlns="http://www.w3.org/1999/xhtml">20000</xhtml>
           </documentation>
         </variable>
-        <variable name="_COUNT_SUBTOPIC_FROM_BROKER">
-          <type>
-            <UINT />
-          </type>
-          <initialValue>
-            <simpleValue value="25" />
-          </initialValue>
-        </variable>
         <variable name="MAX_PUBREL_REPEATS">
           <type>
             <UINT />
@@ -14713,6 +14706,9 @@ MQTT3(MQTT_INFO := info,
           <initialValue>
             <simpleValue value="10" />
           </initialValue>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">_COUNT_SUBTOPIC_FROM_BROKER:UINT:=25;</xhtml>
+          </documentation>
         </variable>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -14735,6 +14731,11 @@ MQTT3(MQTT_INFO := info,
           <documentation>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">Last Progamm stat for debug timeout exception</xhtml>
           </documentation>
+        </variable>
+        <variable name="LOG_BUFFER_MOVES">
+          <type>
+            <BOOL />
+          </type>
         </variable>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">

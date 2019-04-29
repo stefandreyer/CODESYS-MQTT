@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14" creationDateTime="2019-04-28T13:35:43.0342049" />
-  <contentHeader name="MQTT" version="1.0.0.0" modificationDateTime="2019-04-28T13:23:16.9669479" organization="Stefan Dreyer" author="Stefan Dreyer">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14" creationDateTime="2019-04-29T22:59:53.0271922" />
+  <contentHeader name="MQTT" version="1.0.0.0" modificationDateTime="2019-04-29T22:47:28.8170401" organization="Stefan Dreyer" author="Stefan Dreyer">
     <Comment>MQTT Stuff
 Using some cool stuff of OSCAT libs.
 see oscat.de
@@ -79,6 +79,8 @@ more to describe
               <value name="PUBEC_DISCHARGE" value="26" />
               <value name="REODER_PUBLISH_INCOMMING" value="27" />
               <value name="REORDER_PUBCOMP" value="28" />
+              <value name="UNKNOWN_PAKET_IN_MQTT_IN_OUT" value="29" />
+              <value name="PUBLISH_NO_SLOT_FREE" value="30" />
             </values>
           </enum>
         </baseType>
@@ -518,17 +520,13 @@ more to describe
                 <derived name="MQTT_SUBSCRIBE_CALLBACK" />
               </type>
             </variable>
-            <variable name="FbId">
-              <type>
-                <UINT />
-              </type>
-            </variable>
             <variable name="ExpectingString">
               <type>
                 <BOOL />
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">expecting string</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">FbId:UINT;
+expecting string</xhtml>
               </documentation>
             </variable>
             <variable name="SplitTopic">
@@ -5051,6 +5049,9 @@ CASE step OF
 				//reset in slots
 				InData[i1].step := STEPS_IN.WAIT_DATA;
 				OutData[i1].step := STEPS_OUT.WAIT_DATA;
+				//reset Timeouts...
+				InData[i1].TimeOutStarted := FALSE;
+				OutData[i1].TimeOutStarted := FALSE;
 			END_FOR
 			//reset callbacks
 			FOR i1 := 0 TO CALLBACKS_BUFFER_SIZE - 1 DO
@@ -5312,13 +5313,6 @@ FOR i := 0 TO MyConstants.QoS_BUFFER_SIZE - 1 DO
 			//Pakte id = slot + 1....
 			OutData[i].InDataFromFb^.PaketId := i + 1;
 			CASE OutData[i].InDataFromFb^.MessageType OF
-				MESSAGETYPE.PUBLISH:
-					OutgoingPublishOrderIndexCounter := OutgoingPublishOrderIndexCounter + 1;
-					OutData[i].PUBLISHOrder :=  OutgoingPublishOrderIndexCounter;
-					OutData[i].step := STEPS_OUT.SEND_PUBLSIH;
-					CountSendedPublishs := CountSendedPublishs + 1;
-					CounterPublishSendForMonitor := CounterPublishSendForMonitor + 1;
-					OutData[i].PUBRELRepeatCounter := 0;
 				MESSAGETYPE.PINGREQ:
 					OutData[i].step := STEPS_OUT.WAIT_PINGRESP;
 					SendInfos.PingNeeded := TRUE;
@@ -5341,6 +5335,8 @@ FOR i := 0 TO MyConstants.QoS_BUFFER_SIZE - 1 DO
 					END_IF
 				MESSAGETYPE.UNSUBSCRIBE:
 					OutData[i].step := STEPS_OUT.SEND_UNSUBSCRIBE;
+				ELSE
+					PushError(newError:= ERRORS.UNKNOWN_PAKET_IN_MQTT_IN_OUT , text:= CONCAT(STR1:= 'Type:', STR2:= TO_STRING(OutData[i].InDataFromFb^.MessageType)));
 			END_CASE
 			
 		END_IF
@@ -6371,10 +6367,9 @@ IF COM.R_BUF.SIZE &gt; 0 THEN
 								//now kick of Callback
 								FOR j := 0 TO CALLBACKS_BUFFER_SIZE - 1 DO
 									IF SubscribeCallbacks[j].Callback = OutData[i].InDataFromFb^.Callback  THEN
-									//IF SubscribeCallbacks[j].FbId = OutData[i].InDataFromFb^.FbId THEN
 										//callback found, now kill it...
 										SubscribeCallbacks[j].free := TRUE;
-										SubscribeCallbacks[j].FbId := 0;
+										SubscribeCallbacks[j].Callback := 0;
 										EXIT;
 									END_IF
 								END_FOR
@@ -7300,7 +7295,11 @@ FOR i := 0 TO MyConstants.QoS_BUFFER_SIZE - 1 DO
 		Publish := TRUE;
 		EXIT;
 	END_IF
-END_FOR</xhtml>
+END_FOR
+
+IF NOT Publish THEN
+	PushError(newError:= ERRORS.PUBLISH_NO_SLOT_FREE, text:='');
+END_IF</xhtml>
                 </ST>
               </body>
               <addData />
@@ -8301,7 +8300,7 @@ END_IF
 
 //don't use case, so save a cyle...
 IF step = 10 THEN
-	//check if buffer size is enogh for header
+	//check if buffer size is enough for header
 	IF size - new_pos &lt; 2 THEN
 		state := INSERT_SPLIT_RETURN.INSERT_ERROR;
 		RETURN;
@@ -8808,7 +8807,7 @@ last_step := step;
         <body>
           <ST>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">IF not DbPointerIo THEN RETURN; END_IF
-//MQTT_IN_OUT^.FB_NO_AUTO := MQTT_IN_OUT^.FB_NO_AUTO + 1;</xhtml>
+</xhtml>
           </ST>
         </body>
         <addData>
@@ -9068,7 +9067,7 @@ TokenRequested := FALSE;</xhtml>
         <body>
           <ST>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^();
-//if not config, then leave, do this after super so we calc correct FB numbers
+//if not config, then leave
 IF NOT DbPointerIo THEN RETURN; END_IF;
 GVL_MQTT.ProgNum := PROG_NUM.Publish;
 TriggerEdge(CLK:= send AND NOT requestToSend AND MQTT_IN_OUT^.BROKER_CONNECTED);
@@ -9088,12 +9087,11 @@ IF TriggerEdge.Q THEN
 	requestToSend := TRUE;
 END_IF
 
-IF requestToSend AND NOT WasSendet THEN
+IF requestToSend AND NOT WasSendet AND MQTT_IN_OUT^.BROKER_CONNECTED THEN
 	//try to publish
 	MyOutData.PaketData.MqttTopicLength := CommonTypesAndFunctions.LEN(Topic);
 	//don't sent zero lengt topics...
 	IF  MyOutData.PaketData.MqttTopicLength &gt; 0 THEN
-		//MyOutData.PaketData.FbId := MQTT_IN_OUT^.FB_NO_AUTO;
 		MyOutData.PaketData.MessageType := MESSAGETYPE.PUBLISH;
 		MyOutData.PaketData.MessageRetain := MRetain;
 		MyOutData.PaketData.MessageQoS := QoSIn;
@@ -9436,7 +9434,6 @@ Publish(
         <body>
           <ST>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">{info 'need to check string length!'}
-//need to call publish here because of FB nums
 publish(
 	Topic:= Topic, 
 	PayloadString:= ADR(Payload), 
@@ -9781,7 +9778,7 @@ they using a list to the exact topic. So you can subscribe to a topic with wildc
         <body>
           <ST>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^();
-//if not config, then leave, do this after super so we calc correct FB numbers
+//if not config, then leave
 IF NOT DbPointerIo THEN RETURN; END_IF;
 GVL_MQTT.ProgNum := PROG_NUM.Subscribe;
 SubscribeFalling(CLK:= Subscribe);
@@ -10025,8 +10022,7 @@ SendTimeout := SendTimeOutTime.Q;
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">//need to call publish here because of FB nums
-publish(
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">publish(
 	Topic:= Topic, 
 	PayloadString:= ADR(Payload), 
 	PublishAsString:= TRUE, 

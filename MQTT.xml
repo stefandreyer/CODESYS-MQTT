@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14" creationDateTime="2019-04-29T22:59:53.0271922" />
-  <contentHeader name="MQTT" version="1.0.0.0" modificationDateTime="2019-04-29T22:47:28.8170401" organization="Stefan Dreyer" author="Stefan Dreyer">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14" creationDateTime="2019-05-08T05:21:33.8728384" />
+  <contentHeader name="MQTT" version="1.0.0.0" modificationDateTime="2019-05-07T16:56:03.5313849" organization="Stefan Dreyer" author="Stefan Dreyer">
     <Comment>MQTT Stuff
 Using some cool stuff of OSCAT libs.
 see oscat.de
@@ -1617,11 +1617,6 @@ Greatings
                 <derived name="MQTT_IN_OUT" />
               </type>
             </variable>
-            <variable name="MQTTInfo">
-              <type>
-                <derived name="MQTT_INFO" />
-              </type>
-            </variable>
             <variable name="publish">
               <type>
                 <derived name="MQTTPublish" />
@@ -1756,8 +1751,7 @@ varSend := timerSend.Q;
 t1(IN:= NOT t2.Q, PT:= T#1S, );
 t2(IN:= t1.Q, PT:= T#1S, );
 //call of MQTT client
-MQTTClient(
-	MQTT_INFO:= MQTTInfo, 
+MQTTClient( 
 	MQTT_IN_OUT:= MQTT_IN_OUT, 
 	ENABLE:= TRUE, 
 	URL:= client, 
@@ -1818,11 +1812,6 @@ State();</xhtml>
             <variable name="MQTT_IN_OUT">
               <type>
                 <derived name="MQTT_IN_OUT" />
-              </type>
-            </variable>
-            <variable name="MQTTInfo">
-              <type>
-                <derived name="MQTT_INFO" />
               </type>
             </variable>
             <variable name="publish">
@@ -1964,8 +1953,7 @@ varSend := timerSend.Q;
 t1(IN:= NOT t2.Q, PT:= T#1S, );
 t2(IN:= t1.Q, PT:= T#1S, );
 //call of MQTT client
-MQTTClient(
-	MQTT_INFO:= MQTTInfo, 
+MQTTClient( 
 	MQTT_IN_OUT:= MQTT_IN_OUT, 
 	ENABLE:= TRUE, 
 	URL:= client, 
@@ -4041,11 +4029,6 @@ MyPayload := payload;</xhtml>
                 <derived name="MQTT_IN_OUT" />
               </type>
             </variable>
-            <variable name="MQTTInfo">
-              <type>
-                <derived name="MQTT_INFO" />
-              </type>
-            </variable>
           </outputVars>
           <localVars>
             <variable name="MQTTClient">
@@ -4060,7 +4043,6 @@ MyPayload := payload;</xhtml>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">MQTT_IN_OUT.ClientID := ClientID;
 
 MQTTClient(
-	MQTT_INFO:= MQTTInfo, 
 	MQTT_IN_OUT:= MQTT_IN_OUT, 
 	ENABLE:= connect, 
 	URL:= broker, 
@@ -4078,11 +4060,6 @@ MQTTClient(
       <pou name="HANDLE_MQTT" pouType="functionBlock">
         <interface>
           <inOutVars>
-            <variable name="MQTT_INFO">
-              <type>
-                <derived name="MQTT_INFO" />
-              </type>
-            </variable>
             <variable name="MQTT_IN_OUT">
               <type>
                 <derived name="MQTT_IN_OUT" />
@@ -4127,6 +4104,11 @@ MQTTClient(
             </variable>
           </outputVars>
           <localVars>
+            <variable name="MQTT_INFO">
+              <type>
+                <derived name="MQTT_INFO" />
+              </type>
+            </variable>
             <variable name="DT_MQTT">
               <type>
                 <derived name="CommonTypesAndFunctions.TIME_DATE_IMPULS" />
@@ -4155,6 +4137,11 @@ MQTTClient(
             <variable name="COM">
               <type>
                 <derived name="MQTT_COM" />
+              </type>
+            </variable>
+            <variable name="connected">
+              <type>
+                <BOOL />
               </type>
             </variable>
             <variable name="TimeoutConnection">
@@ -5004,7 +4991,8 @@ END_IF
 
 CASE step OF
 
-	00:	IF ENABLE THEN
+	00:	MQTT_IN_OUT.BROKER_CONNECTED := FALSE;
+		IF ENABLE THEN
 			MQTT_IN_OUT.handleFB := THIS;
 			PingRequestet := FALSE;
 			PublishsUnacknowledged := 0;
@@ -5052,6 +5040,8 @@ CASE step OF
 				//reset Timeouts...
 				InData[i1].TimeOutStarted := FALSE;
 				OutData[i1].TimeOutStarted := FALSE;
+				InData[i1].TimeOut(IN:= InData[i1].TimeOutStarted, PT:= MyConstants.REPEAT_TIMEOUT);
+				OutData[i1].TimeOut(IN:= OutData[i1].TimeOutStarted, PT:= MyConstants.REPEAT_TIMEOUT);
 			END_FOR
 			//reset callbacks
 			FOR i1 := 0 TO CALLBACKS_BUFFER_SIZE - 1 DO
@@ -5075,6 +5065,7 @@ CASE step OF
 		END_IF;
 	10:	IF MQTT_INFO.MQTT_CONNECTED THEN
 			step := 40;
+			MQTT_IN_OUT.BROKER_CONNECTED := TRUE;
 			PushError(newError:= ERRORS.CONNECTION_ESTABLISHED, text:='');
 		END_IF;
 		IF TimeoutConnection.Q THEN
@@ -5118,7 +5109,7 @@ CASE step OF
 			PushError(newError:= ERRORS.HARD_DISCONNECT , text:='');
 			COM.MQTT_CON := FALSE; (* MQTT Verbindung beenden *)
 			COM.MQTT_ABORT := TRUE;
-			
+			MQTT_IN_OUT.BROKER_CONNECTED := FALSE;
 			step := 60;
 		END_IF
 
@@ -5126,13 +5117,13 @@ CASE step OF
 
 50: 
 	COM.MQTT_CON := FALSE; (* MQTT Verbindung beenden *)
-	
+	MQTT_IN_OUT.BROKER_CONNECTED := FALSE;
 	step := 60;//wait for disconnect
 60:
 	IF MQTT_INFO.MQTT_CONNECTED = FALSE THEN
 		destroy();
 		step := 0;
-		
+		MQTT_IN_OUT.BROKER_CONNECTED := FALSE;
 	END_IF
 END_CASE;
 
@@ -5142,7 +5133,9 @@ END_CASE;
 
 IF CountRepeatedPingDisconnect &gt; MAX_PING_REPEATS THEN
 	DoDisconnect := TRUE;
-	PushError(newError:= ERRORS.MAX_PING_REPEATS, text:='');
+	IF step = 40 THEN
+		PushError(newError:= ERRORS.MAX_PING_REPEATS, text:='');
+	END_IF
 END_IF
 
 
@@ -5152,18 +5145,21 @@ RecivedBytes := RecivedBytes + COM.R_BUF.SIZE;
 ERROR_C := COM.ERROR_C;
 ERROR_T := COM.ERROR_T;
 //handl ping telegram
-IF NextPingTime &lt; TICKS.GetTick(xDummy:= TRUE) AND NOT PingRequestet AND ENABLE THEN
+IF NextPingTime &lt; TICKS.GetTick(xDummy:= TRUE) AND NOT PingRequestet AND connected THEN
 	
 	MakePingPaket(MQTT_IN_OUT := MQTT_IN_OUT);
 	
 END_IF
 
 IF COM.ERROR_T &gt; BYTE#0 THEN  (* FEHLER *)
-	step := 0;
+	DoDisconnect := TRUE;
+	MQTT_IN_OUT.BROKER_CONNECTED := FALSE;
 	PushError(newError:= ERRORS.CONNECTION_REFUSED, text:='');
 END_IF;
 //put status to local clients
-MQTT_IN_OUT.BROKER_CONNECTED := MQTT_INFO.MQTT_CONNECTED;
+ 
+
+connected := MQTT_IN_OUT.BROKER_CONNECTED;
 (* ########################## *)
 
 (* revision history
@@ -5307,39 +5303,39 @@ FOR i := 0 TO MyConstants.QoS_BUFFER_SIZE - 1 DO
 		
 		STEPS_OUT.WAIT_DATA:
 			OutData[i].TimeOutStarted := FALSE;
-		IF NOT MQTT_IN_OUT^.InFree THEN//new Data from FBs
-			MQTT_IN_OUT^.InFree := TRUE;
-			OutData[i].InDataFromFb := MQTT_IN_OUT^.In;//set Data
-			//Pakte id = slot + 1....
-			OutData[i].InDataFromFb^.PaketId := i + 1;
-			CASE OutData[i].InDataFromFb^.MessageType OF
-				MESSAGETYPE.PINGREQ:
-					OutData[i].step := STEPS_OUT.WAIT_PINGRESP;
-					SendInfos.PingNeeded := TRUE;
-					SendInfos.PingIndex := i;
-					PingSlot := i;
-				//we only sending one subscription per subscribe paket....
-				MESSAGETYPE.SUBSCRIBE:
-					//check if we have a slot free for subscription
-					FOR j := 0 TO CALLBACKS_BUFFER_SIZE - 1 DO
-						IF SubscribeCallbacks[j].free THEN
-							OutData[i].step := STEPS_OUT.SEND_SUBSCRIBE;
-							CallbacksFull := FALSE;
-							EXIT;
+			IF NOT MQTT_IN_OUT^.InFree THEN//new Data from FBs
+				MQTT_IN_OUT^.InFree := TRUE;
+				OutData[i].InDataFromFb := MQTT_IN_OUT^.In;//set Data
+				//Pakte id = slot + 1....
+				OutData[i].InDataFromFb^.PaketId := i + 1;
+				CASE OutData[i].InDataFromFb^.MessageType OF
+					MESSAGETYPE.PINGREQ:
+						OutData[i].step := STEPS_OUT.WAIT_PINGRESP;
+						SendInfos.PingNeeded := TRUE;
+						SendInfos.PingIndex := i;
+						PingSlot := i;
+					//we only sending one subscription per subscribe paket....
+					MESSAGETYPE.SUBSCRIBE:
+						//check if we have a slot free for subscription
+						FOR j := 0 TO CALLBACKS_BUFFER_SIZE - 1 DO
+							IF SubscribeCallbacks[j].free THEN
+								OutData[i].step := STEPS_OUT.SEND_SUBSCRIBE;
+								CallbacksFull := FALSE;
+								EXIT;
+							END_IF
+						END_FOR
+						IF j = CALLBACKS_BUFFER_SIZE THEN
+							//no free slot
+							MQTT_IN_OUT^.In^.CallbackError := TRUE;
+							CallbacksFull := TRUE;
 						END_IF
-					END_FOR
-					IF j = CALLBACKS_BUFFER_SIZE THEN
-						//no free slot
-						MQTT_IN_OUT^.In^.CallbackError := TRUE;
-						CallbacksFull := TRUE;
-					END_IF
-				MESSAGETYPE.UNSUBSCRIBE:
-					OutData[i].step := STEPS_OUT.SEND_UNSUBSCRIBE;
-				ELSE
-					PushError(newError:= ERRORS.UNKNOWN_PAKET_IN_MQTT_IN_OUT , text:= CONCAT(STR1:= 'Type:', STR2:= TO_STRING(OutData[i].InDataFromFb^.MessageType)));
-			END_CASE
-			
-		END_IF
+					MESSAGETYPE.UNSUBSCRIBE:
+						OutData[i].step := STEPS_OUT.SEND_UNSUBSCRIBE;
+					ELSE
+						PushError(newError:= ERRORS.UNKNOWN_PAKET_IN_MQTT_IN_OUT , text:= CONCAT(STR1:= 'Type:', STR2:= TO_STRING(OutData[i].InDataFromFb^.MessageType)));
+				END_CASE
+				
+			END_IF
 		
 		STEPS_OUT.WAIT_PINGRESP:
 			IF OutData[i].TimeOutStarted AND OutData[i].TimeOut.Q AND NOT SendInfos.PingNeeded THEN
@@ -7281,6 +7277,7 @@ END_IF</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">Publish := FALSE;
+if not connected then return; end_if
 FOR i := 0 TO MyConstants.QoS_BUFFER_SIZE - 1 DO
 	IF OutData[i].step = STEPS_OUT.WAIT_DATA THEN
 		OutData[i].InDataFromFb := data;//set Data
@@ -8745,7 +8742,6 @@ END_IF;
 
 (* ######################################################## *)
 
-//DNS_CLIENT(IP_C:=IP_C, S_BUF:=COM.S_BUF, R_BUF:=COM.R_BUF, DOMAIN:=URL_DATA.DOMAIN, IP4_DNS:= COM.DNS_IP4, ACTIVATE:=step=10); (* DNS-Client *)
 IPC(IP:= DWORD#0, PORT:= WORD#0 , TIME_OUT:= timeout1, IP_C:= IP_C, S_BUF:= COM.S_BUF, R_BUF:= COM.R_BUF, TLS_CONFIG_IN := COM.TLS_CONFIG, useTls:= COM.TLS); (* MQTT Steuerkanal *)
 
 TON_WAIT(IN:=step = last_step AND step &gt; 0,PT:=timeout2);
@@ -8965,6 +8961,11 @@ TokenRequested := FALSE;</xhtml>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml">send on positiv edge, be aware, don't change payload an topic until send is done!!!</xhtml>
               </documentation>
             </variable>
+            <variable name="dataBuild">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
           </inputVars>
           <outputVars>
             <variable name="done">
@@ -9034,14 +9035,6 @@ TokenRequested := FALSE;</xhtml>
                 <derived name="DATA_TO_BROKER" />
               </type>
             </variable>
-            <variable name="DUP">
-              <type>
-                <BOOL />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">retry bit</xhtml>
-              </documentation>
-            </variable>
             <variable name="SendTimeOutTime">
               <type>
                 <derived name="ton" />
@@ -9070,15 +9063,12 @@ TokenRequested := FALSE;</xhtml>
 //if not config, then leave
 IF NOT DbPointerIo THEN RETURN; END_IF;
 GVL_MQTT.ProgNum := PROG_NUM.Publish;
-TriggerEdge(CLK:= send AND NOT requestToSend AND MQTT_IN_OUT^.BROKER_CONNECTED);
+TriggerEdge(CLK:= send AND NOT requestToSend);
 
 IF NOT MQTT_IN_OUT^.BROKER_CONNECTED THEN
 	//no connection, reset
 	WasSendet := FALSE;
-	IF requestToSend THEN
-		DUP := TRUE;
-	END_IF
-	
+	MyOutData.PaketData.DUP := FALSE;
 END_IF
 
 done := FALSE;
@@ -9087,8 +9077,9 @@ IF TriggerEdge.Q THEN
 	requestToSend := TRUE;
 END_IF
 
-IF requestToSend AND NOT WasSendet AND MQTT_IN_OUT^.BROKER_CONNECTED THEN
-	//try to publish
+IF requestToSend AND NOT dataBuild THEN
+	dataBuild := TRUE;
+	//build data	
 	MyOutData.PaketData.MqttTopicLength := CommonTypesAndFunctions.LEN(Topic);
 	//don't sent zero lengt topics...
 	IF  MyOutData.PaketData.MqttTopicLength &gt; 0 THEN
@@ -9103,13 +9094,18 @@ IF requestToSend AND NOT WasSendet AND MQTT_IN_OUT^.BROKER_CONNECTED THEN
 			MyOutData.PaketData.MqttPayload := Payload;
 		END_IF
 		MyOutData.PaketData.MqttTopic := Topic;
-		MyOutData.PaketData.DUP := DUP;
+		
 		//WasSendet := TRUE;
 		LastSend := TICKS.GetTick(xDummy:= TRUE);
 	ELSE
 		{info 'check if we want to diplay topic error'}
 		;
 	END_IF
+
+END_IF
+
+IF requestToSend AND NOT WasSendet AND MQTT_IN_OUT^.BROKER_CONNECTED THEN
+	//try to publish
 	IF MQTT_IN_OUT^.handleFB^.Publish(data:=ADR(MyOutData)) THEN
 		WasSendet := TRUE;
 	ELSE
@@ -9124,7 +9120,7 @@ IF MyOutData.PaketData.SendSucsess THEN //sucsses set by HANDLE_MQTT
 	WasSendet := FALSE;
 	requestToSend := FALSE; 
 	done := TRUE;
-	DUP := FALSE;
+	dataBuild := FALSE;
 	MyOutData.PaketData.DUP := FALSE;
 	TimeToResponse := TICKS.GetTick(xDummy:= TRUE) - LastSend;
 	CountSend := CountSend + 1;
@@ -10018,6 +10014,11 @@ SendTimeout := SendTimeOutTime.Q;
                 <xhtml xmlns="http://www.w3.org/1999/xhtml">Start block time of sending</xhtml>
               </documentation>
             </variable>
+            <variable name="PayloadBuild">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
           </localVars>
         </interface>
         <body>
@@ -10046,6 +10047,7 @@ IF NOT SendBlock THEN
 END_IF
 		 
 IF RequestToSend AND NOT Send AND NOT SendBlock THEN
+	
 	Payload := PayloadTemplate;
 	ValueString := CommonTypesAndFunctions.GetValueString(VALUE:= Value, TypeOfValue:= ValueType, DecimalPlace:= DecimalPlace);
 	CommonTypesAndFunctions.concat(s1:= ADR(Payload), s2:= ADR(ValueString));
@@ -10359,11 +10361,6 @@ THIS^.MinTime := MinTime;</xhtml>
                 <derived name="HANDLE_MQTT" />
               </type>
             </variable>
-            <variable name="MQTT_INFO">
-              <type>
-                <derived name="MQTT_INFO" />
-              </type>
-            </variable>
             <variable name="init">
               <type>
                 <BOOL />
@@ -10401,7 +10398,7 @@ THIS^.MinTime := MinTime;</xhtml>
 	END_FOR
 END_IF
 
-doPublish := working AND MQTT_INFO.MQTT_CONNECTED;
+doPublish := working AND MQTT_IN_OUT.BROKER_CONNECTED;
 
 IF NOT doPublish THEN
 	LastPublished := 0;
@@ -10415,7 +10412,6 @@ IF NOT doPublish THEN
 END_IF
 
 MQTT(
-	MQTT_INFO:= MQTT_INFO, 
 	MQTT_IN_OUT:= MQTT_IN_OUT, 
 	ENABLE:= TRUE, 
 	URL:= broker, 
@@ -11723,18 +11719,10 @@ tNewRun(in := step = 40,PT:= retpeatTime);</xhtml>
                 <derived name="HANDLE_MQTT" />
               </type>
             </variable>
-            <variable name="MQTT_INFO">
-              <type>
-                <derived name="MQTT_INFO" />
-              </type>
-            </variable>
             <variable name="send">
               <type>
                 <derived name="HighLoadPublish" />
               </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">	pub:MQTTPublish;</xhtml>
-              </documentation>
             </variable>
             <variable name="sendWork">
               <type>
@@ -12017,13 +12005,12 @@ subs(
 	
 
 MQTT(
-	MQTT_INFO:= MQTT_INFO, 
 	MQTT_IN_OUT:= MQTT_IN_OUT, 
 	ENABLE:= TRUE, 
 	URL:= broker, 
 	TIMEOUT:= T#5S, 
 	TLS:= FALSE);
-IF NOT MQTT_INFO.MQTT_CONNECTED THEN
+IF NOT MQTT_IN_OUT.BROKER_CONNECTED THEN
 	step := 0;
 END_IF
 	
@@ -12033,7 +12020,7 @@ CASE step OF
 		FOR i := 0 TO topics - 1 DO
 			testPayloadRecive[i] := '';
 		END_FOR
-	1: IF MQTT_INFO.MQTT_CONNECTED THEN
+	1: IF MQTT_IN_OUT.BROKER_CONNECTED THEN
 			step:= 10;
 			PayloadTarget := ADR(testPayloadPointer); 
 			sendWork := TRUE;
@@ -12128,11 +12115,6 @@ tNewRun(in := step = 60,PT:= repeatTime);</xhtml>
             <variable name="MQTT_RECIVE">
               <type>
                 <derived name="HANDLE_MQTT" />
-              </type>
-            </variable>
-            <variable name="MQTT_INFO_RECIVE">
-              <type>
-                <derived name="MQTT_INFO" />
               </type>
             </variable>
             <variable name="subs">
@@ -12361,13 +12343,12 @@ subs(
 	Callback := ListCallback);
 	
 MQTT_RECIVE(
-	MQTT_INFO:= MQTT_INFO_RECIVE, 
 	MQTT_IN_OUT:= MQTT_IN_OUT_RECIVE, 
 	ENABLE:= TRUE, 
 	URL:= broker, 
 	TIMEOUT:= T#5S, 
 	TLS:= FALSE);
-IF NOT MQTT_INFO_RECIVE.MQTT_CONNECTED THEN
+IF NOT MQTT_IN_OUT_RECIVE.BROKER_CONNECTED THEN
 	step := 0;
 END_IF
 	
@@ -12389,7 +12370,7 @@ CASE step OF
 		FOR i := 0 TO Count - 1 DO
 			RecivePayloadStore[i] := 0;
 		END_FOR
-	1: IF MQTT_INFO_RECIVE.MQTT_CONNECTED THEN
+	1: IF MQTT_IN_OUT_RECIVE.BROKER_CONNECTED THEN
 			step:= 5;
 			//subscribe
 			subscribe := TRUE;
@@ -12529,11 +12510,6 @@ tNewRun(in := step = 40,PT:= repeatTime);</xhtml>
                 <derived name="HANDLE_MQTT" />
               </type>
             </variable>
-            <variable name="MQTT_INFO">
-              <type>
-                <derived name="MQTT_INFO" />
-              </type>
-            </variable>
             <variable name="MQTT_IN_OUT">
               <type>
                 <derived name="MQTT_IN_OUT" />
@@ -12639,7 +12615,6 @@ SUB1(
 	send:= send);
 
 MQTT(
-	MQTT_INFO:= MQTT_INFO, 
 	MQTT_IN_OUT:= MQTT_IN_OUT, 
 	ENABLE:= connect, 
 	URL:= broker, 
@@ -12652,7 +12627,7 @@ CASE step OF
 		connect := TRUE;
 		step := 10;
 	10://wait connected
-		IF MQTT_INFO.MQTT_CONNECTED THEN
+		IF MQTT_IN_OUT.BROKER_CONNECTED THEN
 			//subscribe
 			subscribe := TRUE;		
 			step := 20;
@@ -12850,7 +12825,6 @@ t1(IN:= NOT t2.Q, PT:= T#1S, );
 t2(IN:= t1.Q, PT:= T#1S);
 //call of MQTT client
 MQTTClient(
-	MQTT_INFO:= MQTTInfo, 
 	MQTT_IN_OUT:= MQTT_IN_OUT, 
 	ENABLE:= TRUE, 
 	URL:= client, 
@@ -12891,11 +12865,6 @@ State();</xhtml>
             <variable name="MQTT">
               <type>
                 <derived name="HANDLE_MQTT" />
-              </type>
-            </variable>
-            <variable name="MQTT_INFO">
-              <type>
-                <derived name="MQTT_INFO" />
               </type>
             </variable>
             <variable name="MQTT_IN_OUT">
@@ -13424,31 +13393,10 @@ testPiublish[15](
 
 
 
-(*
-MQTT(
-	MQTT_INFO:= MQTT_INFO, 
-	MQTT_IN_OUT:= MQTT_IN_OUT, 
-	ENABLE:= TRUE, 
-	URL:= 'test.mosquitto.org:1883', 
-	TIMEOUT:= T#5S, 
-	ERROR_C=&gt; ERROR_C, 
-	ERROR_T=&gt; ERROR_T);
-	*)
-	(*
-	MQTT(
-	MQTT_INFO:= MQTT_INFO, 
-	MQTT_IN_OUT:= MQTT_IN_OUT, 
-	ENABLE:= enable, 
-	URL:= 'localhost:1883', 
-	TIMEOUT:= T#5S, 
-	ERROR_C=&gt; ERROR_C, 
-	ERROR_T=&gt; ERROR_T);
-	*)
 
 
 
 MQTT(
-	MQTT_INFO:= MQTT_INFO, 
 	MQTT_IN_OUT:= MQTT_IN_OUT, 
 	ENABLE:= enable, 
 	URL:= 'windows-10-pro:1883', 
@@ -13470,11 +13418,6 @@ MQTT(
             <variable name="MQTT">
               <type>
                 <derived name="HANDLE_MQTT" />
-              </type>
-            </variable>
-            <variable name="MQTT_INFO">
-              <type>
-                <derived name="MQTT_INFO" />
               </type>
             </variable>
             <variable name="MQTT_IN_OUT">
@@ -13846,7 +13789,6 @@ MQTT(
 	ERROR_T=&gt; ERROR_T);
 	*)
 	MQTT(
-	MQTT_INFO:= MQTT_INFO, 
 	MQTT_IN_OUT:= MQTT_IN_OUT, 
 	ENABLE:= enable, 
 	URL:= 'test.mosquitto.org:8883', //8883 encryptet, 1883 unencryptet
@@ -13859,7 +13801,6 @@ MQTT(
 
 ELSE
 MQTT(
-	MQTT_INFO:= MQTT_INFO, 
 	MQTT_IN_OUT:= MQTT_IN_OUT, 
 	ENABLE:= enable, 
 	URL:= 'test.mosquitto.org:1883', //8883 encryptet, 1883 unencryptet
@@ -13882,11 +13823,6 @@ END_IF</xhtml>
             <variable name="MQTT">
               <type>
                 <derived name="HANDLE_MQTT" />
-              </type>
-            </variable>
-            <variable name="MQTT_INFO">
-              <type>
-                <derived name="MQTT_INFO" />
               </type>
             </variable>
             <variable name="MQTT_IN_OUT">
@@ -14036,7 +13972,6 @@ TestValue[0]();
 
 
 MQTT(
-	MQTT_INFO:= MQTT_INFO, 
 	MQTT_IN_OUT:= MQTT_IN_OUT, 
 	ENABLE:= enable, 
 	URL:= 'windows-10-pro:1883', 
@@ -14583,18 +14518,15 @@ t1.NewTopic(in:=ADR('+/+'),test:= TRUE, SizeOfString:= 0);
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">MQTT1(MQTT_INFO := info,
-	MQTT_IN_OUT := MQTT_IN_OUT,
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">MQTT1(MQTT_IN_OUT := MQTT_IN_OUT,
 	ENABLE := TRUE,
 	URL:= 'User1:Mypassword@test.mosquitto.org:1883');
 	
-MQTT2(MQTT_INFO := info,
-	MQTT_IN_OUT := MQTT_IN_OUT,
+MQTT2(MQTT_IN_OUT := MQTT_IN_OUT,
 	ENABLE := TRUE,
 	URL:= 'User1@test.mosquitto.org:1883');
 	
-MQTT3(MQTT_INFO := info,
-	MQTT_IN_OUT := MQTT_IN_OUT,
+MQTT3(MQTT_IN_OUT := MQTT_IN_OUT,
 	ENABLE := TRUE,
 	URL:= 'User2:Mypassword@test.mosquitto.org:1883');
 	

@@ -1,6 +1,11 @@
 # CODESYS-MQTT
 MQTT client for CODESYS
 
+# New Version 1.1.0.0
+- solved authentication problem
+- redesigned callbackCollector
+- solved some reliable issues
+
 # NEW Example!
 - please have a look in the GreatExampleOfAdvantages!
 - it runs out of the box with test.mosquitto.org

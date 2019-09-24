@@ -5,6 +5,7 @@ MQTT client for CODESYS
 - solved authentication problem
 - redesigned callbackCollector
 - solved some reliable issues
+- corrected some typos
 
 # NEW Example!
 - please have a look in the GreatExampleOfAdvantages!

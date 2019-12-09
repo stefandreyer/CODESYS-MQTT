@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14" creationDateTime="2019-09-23T17:43:42.4329399" />
-  <contentHeader name="MQTT" version="1.1.0.0" modificationDateTime="2019-08-23T07:00:25.044606" organization="Stefan Dreyer" author="Stefan Dreyer">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14" creationDateTime="2019-12-09T05:23:32.4142619" />
+  <contentHeader name="MQTT" version="1.1.0.0" modificationDateTime="2019-12-08T19:56:54.2967416" organization="Stefan Dreyer" author="Stefan Dreyer">
     <Comment>MQTT Stuff
 Using some cool stuff of OSCAT libs.
 see oscat.de
@@ -169,6 +169,10 @@ more to describe
               <value name="SendInData" />
               <value name="SendOutDataInsertTopic" />
               <value name="SendOutDataInsertPayload" />
+              <value name="DESTROY_SPLIT_TOPIC_DONE" />
+              <value name="DESTROY_HANDLE_MQTT_DONE" />
+              <value name="DESTROY_CALLBACK_COLLECTOR" />
+              <value name="DESTROY_CALLBACK_COLLECTOR_DONE" />
             </values>
           </enum>
         </baseType>
@@ -2426,7 +2430,8 @@ REPEAT
 	END_IF
 	GetRemainingLength.SizeRemainingLength := GetRemainingLength.SizeRemainingLength + 1;
 UNTIL
-	TmpByte.7 = FALSE  OR GetRemainingLength.RemainingLength = 0 OR GetRemainingLength.BuffToSmall
+	TmpByte.7 = FALSE OR GetRemainingLength.BuffToSmall
+	//TmpByte.7 = FALSE  OR GetRemainingLength.RemainingLength = 0 OR GetRemainingLength.BuffToSmall
 END_REPEAT
 GetRemainingLength.IndexAfterRemainingLength := BufferIndex;</xhtml>
           </ST>
@@ -2779,7 +2784,8 @@ END_WHILE
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF first = 0 THEN
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">GVL_MQTT.ProgNum := PROG_NUM.DESTROY_CALLBACK_COLLECTOR;
+IF first = 0 THEN
 	RETURN;
 END_IF
 
@@ -2790,11 +2796,11 @@ REPEAT
 	__DELETE(aktElement);
 	aktElement := nextElement;
 	items := items - 1;
-size := size - SIZEOF(CALLBACK_INSTANCES);
+	size := size - SIZEOF(CALLBACK_INSTANCES);
 UNTIL aktElement = 0
 END_REPEAT
 first := 0;
-</xhtml>
+GVL_MQTT.ProgNum := PROG_NUM.DESTROY_CALLBACK_COLLECTOR_DONE;</xhtml>
                 </ST>
               </body>
               <addData />
@@ -7131,10 +7137,11 @@ IF RemainingLength.Error THEN
 END_IF
 //publish received, size is handleable
 IF ReceiveQoSLevel = QoS.AtMostOnce THEN
-	//Nothing to do, just out the Payload and Topic
+	//Nothing to do, just output the Payload and Topic
 	OutData := TRUE;
 	PayloadSize := RemainingLength.RemainingLength - TopicSize - 2;//2 for Size Encoding
 	PayloadPosStart := RemainingLength.IndexAfterRemainingLength + TopicSize + 2;//2 for Size Encoding
+	CountReceivedPublishs := CountReceivedPublishs + 1;
 ELSE
 	//get Paket ID
 	ReceivePaketID := DWORD_TO_WORD(OSCAT_BASIC.DWORD_OF_BYTE(B3:= 0, B2:= 0, 
@@ -7508,7 +7515,8 @@ DynMemUsagePointer^ := DynMemUsagePointer^ - SplitPublishBufferAllocationSize;
 {warning disable C0033}
 __DELETE(SplitPublishBuffer);
 {warning restore C0033}
-StepInitDone := FALSE;</xhtml>
+StepInitDone := FALSE;
+GVL_MQTT.ProgNum := PROG_NUM.DESTROY_HANDLE_MQTT_DONE;</xhtml>
                 </ST>
               </body>
               <addData />
@@ -8106,7 +8114,8 @@ IF InitLow THEN
 	dynMemUsage^ := dynMemUsage^ - (TopicsLevel * SIZEOF(SplitLength^));
 	InitLow:= FALSE;
 END_IF
-{warning restore C0033}</xhtml>
+{warning restore C0033}
+GVL_MQTT.ProgNum := PROG_NUM.DESTROY_SPLIT_TOPIC_DONE;</xhtml>
                 </ST>
               </body>
               <addData />
@@ -11172,6 +11181,16 @@ SplitPayloadChar := CommonTypesAndFunctions.GetChar(in:= splitChar);</xhtml>
                 <derived name="AllValuesCallback" />
               </type>
             </variable>
+            <variable name="var2">
+              <type>
+                <derived name="AllValuesCallback" />
+              </type>
+            </variable>
+            <variable name="var3">
+              <type>
+                <derived name="AllValuesCallback" />
+              </type>
+            </variable>
             <variable name="collector">
               <type>
                 <derived name="CallbackCollector" />
@@ -11240,10 +11259,37 @@ collector.put(instance:= var1);
 
 collector.PublishReceived(Data:= callbackData);
 
-collector.destroy();</xhtml>
+collector.destroy();
+
+//put tree instance
+collector.put(instance:= var1);
+collector.put(instance:= var2);
+collector.put(instance:= var3);</xhtml>
           </ST>
         </body>
         <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="FB_Exit" ObjectId="383d48b9-a34d-4e53-96fe-6494a1e650b0">
+              <interface>
+                <inputVars>
+                  <variable name="bInCopyCode">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE: the exit method is called in order to leave the instance which will be copied afterwards (online change). </xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">collector.destroy();</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
             <ObjectId>50db2ef6-17e2-42a9-ae41-9bd9a0909cd2</ObjectId>
           </data>
@@ -15084,7 +15130,9 @@ you can implement it in you one FBs and pass this to the CallbackStock or subscr
                 <Object Name="initAsFindPayload" ObjectId="fcd2a1c3-70a3-4baa-a5a5-ad1cee7fad61" />
               </Object>
               <Object Name="exampleForFbs" ObjectId="65ff7880-8a04-45c8-97d1-778b8fbd262b" />
-              <Object Name="TestCallbackCollecktor" ObjectId="50db2ef6-17e2-42a9-ae41-9bd9a0909cd2" />
+              <Object Name="TestCallbackCollecktor" ObjectId="50db2ef6-17e2-42a9-ae41-9bd9a0909cd2">
+                <Object Name="FB_Exit" ObjectId="383d48b9-a34d-4e53-96fe-6494a1e650b0" />
+              </Object>
             </Folder>
             <Object Name="TestLongPublish" ObjectId="b18c8267-7251-461e-ae79-29a6c51f3a8f" />
             <Object Name="TestLongStringList" ObjectId="ba26506c-e830-4dfd-b732-7d24065c29cf" />

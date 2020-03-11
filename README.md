@@ -3,6 +3,7 @@ MQTT client for CODESYS
 
 # JSON
 - new library for easy use with JSON/zigbee2mqtt:
+
 https://github.com/stefandreyer/CODESYS-zigbee2mqtt
 
 # NEW Example!

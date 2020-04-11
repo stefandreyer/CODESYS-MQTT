@@ -5,26 +5,27 @@
 
 - after creating a new project you need to add the library
 
-<img src="../_img/ADD_Lib.png" width="350">
+<img src="../_img/ADD_Lib.png" width="700">
 
 - then you have to activate dynamic memmory allocation
 
 - right click on Application, then Option Application 
+- missing librarys are available
 
-<img src="../_img/DynMemmory.png" width="350">
+<img src="../_img/DynMemmory.png" width="700">
 
 ## __BASIC Handler__
 
 - you need a struct of __SD_MQTT.MQTT_IN_OUT__ and a instance of __SD_MQTT.HANDLE_MQTT__ for communication to the broker
 - this setup will comunicate to teh broker but does not send or receive publish packets
 
-<img src="../_img/HandleMQTT.png" width="350">
+<img src="../_img/HandleMQTT.png" width="700">
 
 ## __DEBUGGING__
 
 - in case of trobble, there is in the __SD_MQTT.HANDLE_MQTT__ instance a __ErrorHistory__ , there you will finds hints
 
-<img src="../_img/ErrorHistory.png" width="350">
+<img src="../_img/ErrorHistory.png" width="700">
 
 ## __first publish__
 
@@ -38,7 +39,7 @@
 - you can instance as much instances of __SD_MQTT.MQTTPublish__ as you like, the Library is coordinading the rest
 - the __SD_MQTT.HANDLE_MQTT__ FB atually is set up to handle 50 incomming and outgoing packets per second
  
-<img src="../_img/FirstPublish.png" width="350">
+<img src="../_img/FirstPublish.png" width="700">
 
 ## __Subscriptions__
 
@@ -48,7 +49,7 @@
 	Actuall 200 subscription topics can be registered. Now, if the broker sends a publish packet
 	to the client, the __SD_MQTT.HANDLE_MQTT__ FB cheks to which subscription topic the received topic
 	fits and then it calls the to the __SD_MQTT.MQTTSubscribe__ FB passed __PublishReceived__ method. To the 
-	__PublishReceived__ method is passed a __Data:CALLBACK_DATA__. In this all needed data is availabel.
+	__PublishReceived__ method is passed a __Data:CALLBACK_DATA__. In this all needed data is available.
 	I created some nice FB for easy use of callbacks: __ReceiveValue__, __ReceiveString__ with them
 	you can start working. They can check topics, payloads and other stuff.
 	The highes benefit of the callbacks is the callbackCollector. With the collector we are able to,
@@ -66,7 +67,7 @@
 - So make a instance of an __CallbackCollectro__ and a __SD_MQTT.MQTTSubscription__ FB. Run some init stuff and with a recever
 	you get your first data. like here:
 	
-	<img src="../_img/FirstSubscription.png" width="350">
+	<img src="../_img/FirstSubscription.png" width="700">
 	
 ## __Test it__
 

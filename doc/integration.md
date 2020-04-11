@@ -10,7 +10,7 @@
 - then you have to activate dynamic memmory allocation
 
 - right click on Application, then Option Application 
-- missing librarys are available
+- missing librarys are available in my GitHub repositories
 
 <img src="../_img/DynMemmory.png" width="700">
 

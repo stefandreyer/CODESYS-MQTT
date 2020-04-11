@@ -17,7 +17,7 @@
 ## __BASIC Handler__
 
 - you need a struct of __SD_MQTT.MQTT_IN_OUT__ and a instance of __SD_MQTT.HANDLE_MQTT__ for communication to the broker
-- this setup will comunicate to teh broker but does not send or receive publish packets
+- this setup will communicate to the broker, but does not send or receive publish packets until now
 
 <img src="../_img/HandleMQTT.png" width="700">
 
@@ -32,12 +32,12 @@
 - make a instance of __SD_MQTT.MQTTPublish__
 - you have to call __SET_MQTT_IN_OUT__ once, there your __SD_MQTT.MQTT_IN_OUT__ struct is the parameter
 - call the instance, there you can define the topic, payload, QoS, retain
--- payload can be a string or a byte array, for the array you must provide the length
--- selection of string or array is done by the input __PublishAsString__ (True --> String, False --> Array)
+- payload can be a string or a byte array, for the array you must provide the length
+- selection of string or array is done by the input __PublishAsString__ (True --> String, False --> Array)
 - by setting the input __send__ to True, the packet is published
 - use __done__ for checking if the transmit is done
-- you can instance as much instances of __SD_MQTT.MQTTPublish__ as you like, the Library is coordinading the rest
-- the __SD_MQTT.HANDLE_MQTT__ FB atually is set up to handle 50 incomming and outgoing packets per second
+- you can instance as much instances of __SD_MQTT.MQTTPublish__ as you like, the library is coordinating the rest
+- the __SD_MQTT.HANDLE_MQTT__ FB atually is set up to handle 50 incomming and outgoing packets at once (QoS 1 and 2)
  
 <img src="../_img/FirstPublish.png" width="700">
 
@@ -52,14 +52,14 @@
 	__PublishReceived__ method is passed a __Data:CALLBACK_DATA__. In this all needed data is available.
 	I created some nice FB for easy use of callbacks: __ReceiveValue__, __ReceiveString__ with them
 	you can start working. They can check topics, payloads and other stuff.
-	The highes benefit of the callbacks is the callbackCollector. With the collector we are able to,
+	The highest benefit of the callbacks is the callbackCollector. With the collector we are able to,
 	collect as many instances of FBs(implementing the __MQTT_SUBSCRIBE_CALLBACK__ interface) as desired.
 	The collector uses dynamic memmory allocation and is so limited by the ammount of available dynamic memmory.
 	To use the collector you have to pass one instance of the collector to the subscription FB. Then
 	use the __put__ method of the collector to add multiple instances of FBs to the collector. If a 
 	publish packet is received, the collector calls all of the __PublishReceived__ methods registered
 	to the collector. So each FB can check if the received packet fits to them. I use this technology im my 
-	__CODESYS-ZIGBEE2MQTT__ Library. With additional use of reflection, I'm able to create topics by names
+	__CODESYS-ZIGBEE2MQTT__ library. With additional use of reflection, I'm able to create topics by names
 	of FB instances.
 - The other benefit of the collector is the speed. By using a collector all payload received in one cycle can
 	be passed to the application. So if there are 20 publish packets in the buffer in one cycle, these 20 packets are passed
@@ -71,4 +71,4 @@
 	
 ## __Test it__
 
-- I added the Integration HowTo Ptojekt to this Repositiory, just have a look
+- I added the Integration HowTo Project to this repositiory, just have a look

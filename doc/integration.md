@@ -1,5 +1,5 @@
 
-# How To and Dokumentation
+# How To and Documentation
 
 ## __Gerneral__
 

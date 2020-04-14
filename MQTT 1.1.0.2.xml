@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14" creationDateTime="2019-12-09T05:23:32.4142619" />
-  <contentHeader name="MQTT" version="1.1.0.0" modificationDateTime="2019-12-08T19:56:54.2967416" organization="Stefan Dreyer" author="Stefan Dreyer">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP15 Patch 2" creationDateTime="2020-04-11T22:53:20.5572817" />
+  <contentHeader name="MQTT" version="1.1.0.2" modificationDateTime="2020-04-11T22:45:00.0583058" organization="Stefan Dreyer" author="Stefan Dreyer">
     <Comment>MQTT Stuff
 Using some cool stuff of OSCAT libs.
 see oscat.de
@@ -35,10 +35,10 @@ more to describe
           <property name="IsEndUserLibrary" type="boolean">false</property>
           <property name="LanguageModelAttribute" type="string">qualified-access-only</property>
           <property name="Placeholder" type="string">SD_MQTT</property>
-          <property name="Project" type="string">MQTT</property>
+          <property name="Project" type="string">MQTT 1.1.0.2</property>
           <property name="Released" type="boolean">false</property>
           <property name="Title" type="string">MQTT</property>
-          <property name="Version" type="version">1.1.0.0</property>
+          <property name="Version" type="version">1.1.0.2</property>
           <property name="library-category-list" type="library-category-list" />
         </ProjectInformation>
       </data>
@@ -225,6 +225,29 @@ more to describe
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
             <ObjectId>dc0ab29a-e4c9-4251-b775-e8f4fc8a2ed4</ObjectId>
+          </data>
+        </addData>
+      </dataType>
+      <dataType name="RECEIVE_TYPS">
+        <baseType>
+          <enum>
+            <values>
+              <value name="FIND_PAYLOAD" value="0" />
+              <value name="FIND_TOPIC" value="1" />
+              <value name="FIND_LAST_TOPIC" value="2" />
+              <value name="FIND_LAST_TOPIC_AND_PAYLOAD" value="3" />
+            </values>
+          </enum>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+            <Attributes>
+              <Attribute Name="qualified_only" Value="" />
+              <Attribute Name="strict" Value="" />
+            </Attributes>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>05bcf203-f13b-4816-b393-deb4dfb10f8f</ObjectId>
           </data>
         </addData>
       </dataType>
@@ -598,8 +621,7 @@ more to describe
                 <BOOL />
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">FbId:UINT;
-expecting string</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">expecting string</xhtml>
               </documentation>
             </variable>
             <variable name="SplitTopic">
@@ -2729,7 +2751,7 @@ size := size + SIZEOF(CALLBACK_INSTANCES);</xhtml>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">
 
 IF first = 0 THEN
-	//no callback avalebal
+	//no callback avalable
 	RETURN;
 END_IF
 element := first;
@@ -3207,7 +3229,7 @@ END_CASE</xhtml>
 //now search the right topic 
 IF splitTopic THEN
 	
-	IF CommonTypesAndFunctions.StrEquals(str1:= Data.TopicOutSplit^.Topics[Data.TopicOutSplit^.ValidFields - 1], str2:= MyCompString) THEN
+	IF CommonTypesAndFunctions.StrEquals(str1:= Data.TopicOut, str2:= MyCompString) THEN
 		StrPt := Data.PayloadString;
 		MQTTReceived := StrPt^;
 		PublishReceived := MyReturnHit;
@@ -3358,30 +3380,6 @@ MyReturnHit := returnHit;</xhtml>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml">Target var type</xhtml>
               </documentation>
             </variable>
-            <variable name="splitTopic">
-              <type>
-                <BOOL />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">if set to true we search the instance name in the lowest topic</xhtml>
-              </documentation>
-            </variable>
-            <variable name="splitPayload">
-              <type>
-                <BOOL />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">if set to true we search the instance name in Payload separatet by the split char </xhtml>
-              </documentation>
-            </variable>
-            <variable name="splitTopicAndPayload">
-              <type>
-                <BOOL />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">fisrt searc topic, then payload...</xhtml>
-              </documentation>
-            </variable>
             <variable name="SplitPayloadChar">
               <type>
                 <BYTE />
@@ -3422,6 +3420,11 @@ MyReturnHit := returnHit;</xhtml>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml">if set to true and hit we will return true, else false...</xhtml>
               </documentation>
             </variable>
+            <variable name="ReceiveType">
+              <type>
+                <derived name="RECEIVE_TYPS" />
+              </type>
+            </variable>
           </localVars>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
@@ -3430,6 +3433,13 @@ MyReturnHit := returnHit;</xhtml>
               </Inheritance>
             </data>
           </addData>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">
+Receives one value from a MQTT publish packet.
+It can check diffrent sources to determinate if the data is for this Value....
+
+</xhtml>
+          </documentation>
         </interface>
         <body>
           <ST>
@@ -3467,38 +3477,39 @@ MyReturnHit := returnHit;</xhtml>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF splitTopic THEN
-	//now search the right topic 
-	IF CommonTypesAndFunctions.StrEquals(str1:= Data.TopicOutSplit^.Topics[Data.TopicOutSplit^.ValidFields - 1], str2:= MyCompString) THEN
-		CommonTypesAndFunctions.GetValueFromStringPt(TypeOfValue:= MyValueTyp ,Target:= TargetPointer, str:= DATA.PayloadString);
-		PublishReceived := MyReturnHit;
-	END_IF
-	
-END_IF
-IF splitPayload THEN
-	
-	IF CommonTypesAndFunctions.StrEqualsAtStartWithDelimiter(str1:= MyCompString, str2:= Data.PayloadString, delimiter:= SplitPayloadChar) THEN
-		//now search split char
-		StrPt := Data.PayloadString;
-		StrPt := StrPt + TO_DWORD(CommonTypesAndFunctions.find(str1 := StrPt, str2:= ADR(SplitPayloadChar))) + 1;
-		CommonTypesAndFunctions.GetValueFromStringPt(TypeOfValue:= MyValueTyp ,Target:= TargetPointer, str:= StrPt);
-		PublishReceived := MyReturnHit;
-	END_IF
-	
-END_IF
-
-IF splitTopicAndPayload THEN
-	//now search the right topic 
-	IF CommonTypesAndFunctions.StrEquals(str1:= Data.TopicOut, str2:= MyCompString) THEN
-		IF CommonTypesAndFunctions.StrEqualsAtStartWithDelimiter(str1:= MyCompStringPayload, str2:= Data.PayloadString, delimiter:= SplitPayloadChar) THEN
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">CASE ReceiveType OF
+	RECEIVE_TYPS.FIND_LAST_TOPIC:	
+		//now search the right topic 
+		IF CommonTypesAndFunctions.StrEquals(str1:= Data.TopicOutSplit^.Topics[Data.TopicOutSplit^.ValidFields - 1], str2:= MyCompString) THEN
+			CommonTypesAndFunctions.GetValueFromStringPt(TypeOfValue:= MyValueTyp ,Target:= TargetPointer, str:= DATA.PayloadString);
+			PublishReceived := MyReturnHit;
+		END_IF
+	RECEIVE_TYPS.FIND_PAYLOAD:
+		IF CommonTypesAndFunctions.StrEqualsAtStartWithDelimiter(str1:= MyCompString, str2:= Data.PayloadString, delimiter:= SplitPayloadChar) THEN
+			//now search split char
 			StrPt := Data.PayloadString;
 			StrPt := StrPt + TO_DWORD(CommonTypesAndFunctions.find(str1 := StrPt, str2:= ADR(SplitPayloadChar))) + 1;
 			CommonTypesAndFunctions.GetValueFromStringPt(TypeOfValue:= MyValueTyp ,Target:= TargetPointer, str:= StrPt);
 			PublishReceived := MyReturnHit;
 		END_IF
-	END_IF
-	
-END_IF
+	RECEIVE_TYPS.FIND_LAST_TOPIC_AND_PAYLOAD:
+		//now search the right topic and payload
+		IF CommonTypesAndFunctions.StrEquals(str1:= Data.TopicOut, str2:= MyCompString) THEN
+			IF CommonTypesAndFunctions.StrEqualsAtStartWithDelimiter(str1:= MyCompStringPayload, str2:= Data.PayloadString, delimiter:= SplitPayloadChar) THEN
+				StrPt := Data.PayloadString;
+				StrPt := StrPt + TO_DWORD(CommonTypesAndFunctions.find(str1 := StrPt, str2:= ADR(SplitPayloadChar))) + 1;
+				CommonTypesAndFunctions.GetValueFromStringPt(TypeOfValue:= MyValueTyp ,Target:= TargetPointer, str:= StrPt);
+				PublishReceived := MyReturnHit;
+			END_IF
+		END_IF
+	RECEIVE_TYPS.FIND_TOPIC:
+		//now search the right topic 
+		IF CommonTypesAndFunctions.StrEquals(str1:= Data.TopicOut, str2:= MyCompString) THEN
+			CommonTypesAndFunctions.GetValueFromStringPt(TypeOfValue:= MyValueTyp ,Target:= TargetPointer, str:= DATA.PayloadString);
+			PublishReceived := MyReturnHit;
+		END_IF
+END_CASE
+
 </xhtml>
                 </ST>
               </body>
@@ -3552,9 +3563,7 @@ END_IF
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">
-splitPayload := TRUE;
-splitTopic := FALSE;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">ReceiveType := RECEIVE_TYPS.FIND_PAYLOAD;
 
 SplitPayloadChar := CommonTypesAndFunctions.GetChar(in:= splitChar);
 MyCompString := compString;
@@ -3608,9 +3617,7 @@ MyReturnHit := returnHit;</xhtml>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">
-splitPayload := FALSE;
-splitTopic := TRUE;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">ReceiveType := RECEIVE_TYPS.FIND_TOPIC;
 MyCompString := compString;
 MyValueTyp := ValueTyp;
 makePointer();
@@ -3697,11 +3704,7 @@ MyReturnHit := returnHit;</xhtml>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">
-splitPayload := FALSE;
-splitTopic := FALSE;
-splitTopicAndPayload := TRUE;
-
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">ReceiveType := RECEIVE_TYPS.FIND_LAST_TOPIC_AND_PAYLOAD;
 SplitPayloadChar := CommonTypesAndFunctions.GetChar(in:= splitChar);
 MyCompString := compStringTopic;
 MyCompStringPayload := compStringPayload;
@@ -3735,8 +3738,196 @@ MyReturnHit := returnHit;</xhtml>
               <addData />
             </Method>
           </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="initAsFindLastTopic" ObjectId="b80a74e9-4694-4459-b362-513bb6d2c6b2">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="compString">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">this i'm searching</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="ValueTyp">
+                    <type>
+                      <derived name="CommonTypesAndFunctions.VAR_TYPES" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">this typ is my received string</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="returnHit">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">if set to true and hit we will return true, else false...</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">ReceiveType := RECEIVE_TYPS.FIND_LAST_TOPIC;
+MyCompString := compString;
+MyValueTyp := ValueTyp;
+makePointer();
+MyReturnHit := returnHit;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
             <ObjectId>e79e061e-307d-4296-993d-9a352fb8e8d6</ObjectId>
+          </data>
+        </addData>
+      </pou>
+      <pou name="ReceiveValueWithStrucur" pouType="functionBlock">
+        <interface>
+          <localVars>
+            <variable name="InstanceName">
+              <type>
+                <derived name="CommonTypesAndFunctions.GetInstanceName" />
+              </type>
+            </variable>
+            <variable name="localCompString">
+              <type>
+                <string length="255" />
+              </type>
+            </variable>
+          </localVars>
+          <addData>
+            <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
+              <Inheritance>
+                <Extends>ReceiveValue</Extends>
+              </Inheritance>
+            </data>
+          </addData>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">
+
+</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitReceiveStructur" ObjectId="f50c2837-88e0-4865-9cda-a8a2f7f1dd91">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="TopicLevel">
+                    <type>
+                      <USINT />
+                    </type>
+                  </variable>
+                  <variable name="ValueTyp">
+                    <type>
+                      <derived name="CommonTypesAndFunctions.VAR_TYPES" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">this typ is my received string</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="returnHit">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">if set to true and hit we will return true, else false...</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="tString">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                  <variable name="cmpByte">
+                    <type>
+                      <BYTE />
+                    </type>
+                  </variable>
+                  <variable name="bytePointer">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <BYTE />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="StringPointer">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="i">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">
+tString:= InstanceName.GetInstanceTopic();
+
+cmpByte:= CommonTypesAndFunctions.GetChar('/');
+
+bytePointer := ADR(tString) + CommonTypesAndFunctions.len(ADR(tString));
+
+i := 0;
+
+WHILE bytePointer &gt;= ADR(tString) DO
+	IF bytePointer^ = cmpByte THEN
+		i := i + 1; 
+	END_IF
+	
+	IF i = TopicLevel THEN
+		
+		StringPointer := bytePointer + 1;
+		//ReceiveTopic := GVL_ZIGBEE.TextZigbeeTopic;
+		//ReceiveTopic := CONCAT(STR1:= ReceiveTopic, STR2:= StringPointer^); 
+		localCompString := StringPointer^;
+		initAsFindTopic(compString:= ADR(localCompString), ValueTyp:= ValueTyp, returnHit:= returnHit);
+		RETURN;
+	END_IF
+	bytePointer := bytePointer - 1;
+END_WHILE
+localCompString := tString;
+initAsFindTopic(compString:= ADR(localCompString), ValueTyp:= ValueTyp, returnHit:= returnHit);</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/buildproperties" handleUnknown="implementation">
+            <BuildProperties>
+              <ExcludeFromBuild>true</ExcludeFromBuild>
+            </BuildProperties>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>99ceed21-5186-417f-a187-d8491765488e</ObjectId>
           </data>
         </addData>
       </pou>
@@ -4410,72 +4601,6 @@ MyPayload := payload;</xhtml>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
             <ObjectId>0c518722-7423-4fb1-8412-7ed77d1701cb</ObjectId>
-          </data>
-        </addData>
-      </pou>
-      <pou name="ClientWrapper" pouType="functionBlock">
-        <interface>
-          <inputVars>
-            <variable name="broker">
-              <type>
-                <string length="255" />
-              </type>
-            </variable>
-            <variable name="connect">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="tls">
-              <type>
-                <BOOL />
-              </type>
-              <initialValue>
-                <simpleValue value="FALSE" />
-              </initialValue>
-            </variable>
-            <variable name="ClientID">
-              <type>
-                <string length="255" />
-              </type>
-            </variable>
-          </inputVars>
-          <outputVars>
-            <variable name="MQTT_IN_OUT">
-              <type>
-                <derived name="MQTT_IN_OUT" />
-              </type>
-            </variable>
-          </outputVars>
-          <localVars>
-            <variable name="MQTTClient">
-              <type>
-                <derived name="HANDLE_MQTT" />
-              </type>
-            </variable>
-          </localVars>
-        </interface>
-        <body>
-          <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">MQTT_IN_OUT.ClientID := ClientID;
-
-MQTTClient(
-	MQTT_IN_OUT:= MQTT_IN_OUT, 
-	ENABLE:= connect, 
-	URL:= broker, 
-	TIMEOUT:= T#5S, 
-	TLS:= tls);
-	</xhtml>
-          </ST>
-        </body>
-        <addData>
-          <data name="http://www.3s-software.com/plcopenxml/buildproperties" handleUnknown="implementation">
-            <BuildProperties>
-              <ExcludeFromBuild>true</ExcludeFromBuild>
-            </BuildProperties>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
-            <ObjectId>ae168887-b144-4ba6-94b3-318ba61e28a5</ObjectId>
           </data>
         </addData>
       </pou>
@@ -9379,7 +9504,7 @@ DbPointerIo := TRUE;</xhtml>
                 <BOOL />
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">send on positiv edge, be aware, don't change payload an topic until send is done!!!</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">send on positiv edge, be aware, don't change payload and topic until send is done!!!</xhtml>
               </documentation>
             </variable>
           </inputVars>
@@ -9476,7 +9601,7 @@ DbPointerIo := TRUE;</xhtml>
             </data>
           </addData>
           <documentation>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">be aware, don't change payload an topic until send is done!!!
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">be aware, don't change payload and topic until send is done!!!
 
 </xhtml>
           </documentation>
@@ -9487,6 +9612,7 @@ DbPointerIo := TRUE;</xhtml>
 //if not config, then leave
 IF NOT DbPointerIo THEN RETURN; END_IF;
 GVL_MQTT.ProgNum := PROG_NUM.Publish;
+{info 'TODO check this, messeg is repeated!'}
 TriggerEdge(CLK:= send AND NOT requestToSend);
 
 IF NOT MQTT_IN_OUT^.BROKER_CONNECTED THEN
@@ -14917,7 +15043,6 @@ you can implement it in you one FBs and pass this to the CallbackStock or subscr
         <Library Name="OSCAT NETWORK, 1.30 (OSCAT)" Namespace="OSCAT_NETWORK" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
         <Library Name="#Standard" Namespace="Standard" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" DefaultResolution="Standard, * (System)" />
         <Library Name="SysProcess, 3.5.7.0 (System)" Namespace="SysProcess" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
-        <Library Name="SysSem, 3.5.5.0 (System)" Namespace="SysSem" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
         <Library Name="BASIC, 3.3.3.0 (OSCAT)" Namespace="OSCAT_BASIC" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
         <Library Name="CAA Memory, 3.5.12.0 (CAA Technical Workgroup)" Namespace="MEM" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
         <Library Name="#IecSfc" Namespace="IecSfc" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="IecSfc, 3.4.2.0 (System)" />
@@ -14935,15 +15060,15 @@ you can implement it in you one FBs and pass this to the CallbackStock or subscr
         <Library Name="#CommonTypsFunctions" Namespace="CommonTypesAndFunctions" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" DefaultResolution="Common Helper for development, * (Stefan Dreyer)" />
         <Library Name="SysTarget, 3.5.5.0 (System)" Namespace="SysTarget" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
         <Library Name="Plc Services, 3.5.8.0 (System)" Namespace="Plc_Services" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
-        <Library Name="MemoryUtils, 3.5.13.0 (3S - Smart Software Solutions GmbH)" Namespace="MEMUtils" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
-        <Library Name="CAA File, 3.5.13.0 (CAA Technical Workgroup)" Namespace="FILE" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
-        <Library Name="CmpCrypto, 3.5.11.0 (System)" Namespace="CmpCrypto" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
         <Library Name="3S Storage, 3.5.13.0 (3S - Smart Software Solutions GmbH)" Namespace="STI" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
-        <Library Name="StringUtils, 3.5.14.0 (System)" Namespace="Stu" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
         <Library Name="Element Collections, 3.5.14.0 (3S - Smart Software Solutions GmbH)" Namespace="COL" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
-        <Library Name="CmpErrors2 Interfaces, 3.5.12.0 (System)" Namespace="CmpErrors" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
         <Library Name="SysMem, 3.5.12.0 (System)" Namespace="SysMem" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
         <Library Name="SysTypes2 Interfaces, 3.5.4.0 (System)" Namespace="SysTypes" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
+        <Library Name="SysSem, 3.5.15.0 (System)" Namespace="SysSem" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
+        <Library Name="MemoryUtils, 3.5.15.0 (3S - Smart Software Solutions GmbH)" Namespace="MEMUtils" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
+        <Library Name="CAA File, 3.5.15.0 (CAA Technical Workgroup)" Namespace="FILE" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
+        <Library Name="StringUtils, 3.5.15.0 (System)" Namespace="Stu" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
+        <Library Name="CmpErrors2 Interfaces, 3.5.15.0 (System)" Namespace="CmpErrors" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
             <ObjectId>8c1463b5-02f2-427d-bd06-9e39d42fcbff</ObjectId>
@@ -15041,6 +15166,9 @@ you can implement it in you one FBs and pass this to the CallbackStock or subscr
                   <Object Name="destroy" ObjectId="80a0328b-46e3-417c-8576-fbd361f44c56" />
                   <Object Name="FB_Exit" ObjectId="5fdc8552-ab1f-4d80-a6dd-b946a8ffbea6" />
                 </Object>
+                <Object Name="ReceiveValueWithStrucur" ObjectId="99ceed21-5186-417f-a187-d8491765488e">
+                  <Object Name="InitReceiveStructur" ObjectId="f50c2837-88e0-4865-9cda-a8a2f7f1dd91" />
+                </Object>
                 <Object Name="ReceiveValue" ObjectId="e79e061e-307d-4296-993d-9a352fb8e8d6">
                   <Object Name="PublishReceived" ObjectId="5dac2322-5ac7-4538-93c4-0b74db522b57" />
                   <Object Name="initAsFindPayload" ObjectId="e6ddf348-ea05-4bcf-81e6-0069705572a2" />
@@ -15048,6 +15176,7 @@ you can implement it in you one FBs and pass this to the CallbackStock or subscr
                   <Object Name="makePointer" ObjectId="473b6f42-69a5-47ab-854c-26478a68a4fc" />
                   <Object Name="initAsFindTopicAndPayload" ObjectId="eea491e6-688d-4c83-b797-32128c1e8652" />
                   <Object Name="SetOutput" ObjectId="3d28e94b-7d99-4f05-aabe-eef9ba1e98a4" />
+                  <Object Name="initAsFindLastTopic" ObjectId="b80a74e9-4694-4459-b362-513bb6d2c6b2" />
                 </Object>
                 <Object Name="ReceiveString" ObjectId="1969c053-827c-4deb-a980-a43c9464a8f0">
                   <Object Name="PublishReceived" ObjectId="8f6a5d94-9a77-4546-aa4e-4be60b6f742a" />
@@ -15061,7 +15190,6 @@ you can implement it in you one FBs and pass this to the CallbackStock or subscr
                 </Object>
               </Folder>
             </Folder>
-            <Object Name="ClientWrapper" ObjectId="ae168887-b144-4ba6-94b3-318ba61e28a5" />
           </Folder>
           <Folder Name="Global Constants">
             <Object Name="MyConstants" ObjectId="838b66a3-7c96-4a86-a453-6bfd80ff3824" />
@@ -15110,6 +15238,7 @@ you can implement it in you one FBs and pass this to the CallbackStock or subscr
             <Object Name="PUSHOVER_SOUND" ObjectId="323c00fa-583c-4685-ad23-5c7dea71be00" />
             <Object Name="ERRORS" ObjectId="e92c2094-9817-4ed4-9dc8-48cfc52fdd42" />
             <Object Name="RECEIVER_INIT_TYPS" ObjectId="414e9f82-a8cb-4603-93ee-01cc5691e372" />
+            <Object Name="RECEIVE_TYPS" ObjectId="05bcf203-f13b-4816-b393-deb4dfb10f8f" />
           </Folder>
           <Folder Name="TestCases">
             <Object Name="TestcaseCheckTopivValid" ObjectId="632e8e92-ad6c-45dd-90a7-c985f011dd34" />

@@ -1,5 +1,5 @@
 # CODESYS-MQTT
-MQTT client for CODESYS
+MQTT client library for CODESYS
 
 # integration guide
 - look here

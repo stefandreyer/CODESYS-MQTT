@@ -22,7 +22,7 @@ https://github.com/stefandreyer/CODESYS-zigbee2mqtt
 - added supervison FB, monitor your MQTT client with MQTT
 - changed namespace
 - addad any support for publish
-- solved wrong payload deleivery to application with big pacets
+- solved wrong payload delivery to application with big pakets
 - changed name of HANDLE_MQTT to MQTTClient
 - changed call of MQTTClient, do only call nested in MQTT_IN_OUT instance
 - added suport of nested subscriber, client can return reference to a dynamic created subscriber instance

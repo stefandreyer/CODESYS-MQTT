@@ -11,11 +11,27 @@ https://github.com/stefandreyer/CODESYS-MQTT/blob/master/doc/integration.md
 
 https://github.com/stefandreyer/CODESYS-zigbee2mqtt
 
-# New Version 1.1.0.0
-- solved authentication problem
-- redesigned callbackCollector
+# BENEFITS
+- very fast, every received paket is deivierd to application in the cycle it was received
+- in out of the box configuration, 50 pakets can be transmittet in on cycle in QoS 0
+- very powerfull integration due calllbacks
+- multibroker support
+
+# New Version 1.2.0.1
 - solved some reliable issues
-- corrected some typos
+- added supervison FB, monitor your MQTT client with MQTT
+- changed namespace
+- addad any support for publish
+- solved wrong payload delivery to application with big pakets
+- changed name of HANDLE_MQTT to MQTTClient
+- changed call of MQTTClient, do only call nested in MQTT_IN_OUT instance
+- added suport of nested subscriber, client can return reference to a dynamic created subscriber instance
+- changed type types to Base Interfaces TypeClass for any support
+- replaced some librarys with placeholders for better intigration support
+- QoS channel size and History size can now be configurated
+- changed many pointers to references
+- done some conventional naming stuff
+
 
 
 # NEW Example!
@@ -52,6 +68,7 @@ all needed Libraries can be found at
 - FBs for easy transmit of values and states
 - nice collection FB for collecting subscription FBs
 - usefull FBs for callbacks, for list use too
+- client is not thread safe!
 
 # New value FB
 

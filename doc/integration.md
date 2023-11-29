@@ -16,7 +16,7 @@
 
 ## __BASIC Handler__
 
-- you need a struct of __SD_MQTT.MQTT_IN_OUT__ and an instance of __SD_MQTT.HANDLE_MQTT__ for communication to the broker
+- you need a struct of __SD_MQTT.MQTT_IN_OUT__ for communication to the broker
 - this setup will communicate to the broker, but does not send or receive publish packets until now
 
 <img src="../_img/HandleMQTT.png" width="700">
